@@ -20,6 +20,7 @@ interface NavigationTree {
   visitedUrls: Set<string>;
   navigationPath: string[];
   mcpContext: any;
+  logoutButtons?: any[];
 }
 
 interface CrawlStep {
@@ -45,8 +46,8 @@ interface CrawlState {
   stepCounter: number;
 }
 
-export async function runMCPSmartCrawl(seed: string, profile: any, outDir: string, geminiApiKey: string) {
-  const browser = await launchBrowser();
+export async function runMCPSmartCrawl(seed: string, profile: any, outDir: string, geminiApiKey: string, config: any) {
+  const browser = await launchBrowser(config);
   const page = await newPage(browser);
   fs.ensureDirSync(outDir);
   fs.ensureDirSync(path.join(outDir, 'images'));
@@ -302,6 +303,9 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
     }
   }
   
+  // Handle logout as final step
+  await handleLogoutAsFinalStep(page, navigationTree, outDir, crawlState);
+  
   // Final save with MCP context
   const finalResult = {
     metadata: { 
@@ -391,10 +395,234 @@ function addCrawlStep(
   return stepId;
 }
 
+// Helper function to generate intelligent form data based on context
+function generateIntelligentFormData(placeholder: string, name: string, id: string, type: string, label: string): string {
+  const context = `${placeholder} ${name} ${id} ${label}`.toLowerCase();
+  
+  // Email fields
+  if (type === 'email' || context.includes('email') || context.includes('e-mail')) {
+    return 'test@example.com';
+  }
+  
+  // Password fields
+  if (type === 'password' || context.includes('password') || context.includes('pass')) {
+    return 'TestPassword123!';
+  }
+  
+  // Username fields
+  if (context.includes('username') || context.includes('user') || context.includes('login')) {
+    return 'testuser';
+  }
+  
+  // Name fields
+  if (context.includes('name') || context.includes('first') || context.includes('last')) {
+    if (context.includes('first')) return 'John';
+    if (context.includes('last')) return 'Doe';
+    return 'John Doe';
+  }
+  
+  // Phone fields
+  if (type === 'tel' || context.includes('phone') || context.includes('mobile') || context.includes('telephone')) {
+    return '+1-555-123-4567';
+  }
+  
+  // URL fields
+  if (type === 'url' || context.includes('website') || context.includes('url') || context.includes('link')) {
+    return 'https://example.com';
+  }
+  
+  // Number fields
+  if (type === 'number' || context.includes('age') || context.includes('count') || context.includes('quantity')) {
+    if (context.includes('age')) return '25';
+    if (context.includes('count') || context.includes('quantity')) return '5';
+    return '123';
+  }
+  
+  // Date fields
+  if (type === 'date' || context.includes('date') || context.includes('birth')) {
+    return '1990-01-01';
+  }
+  
+  // Time fields
+  if (type === 'time' || context.includes('time')) {
+    return '12:00';
+  }
+  
+  // Textarea fields
+  if (type === 'textarea' || context.includes('comment') || context.includes('message') || context.includes('description') || context.includes('content')) {
+    if (context.includes('comment')) return 'This is a test comment for web crawling purposes.';
+    if (context.includes('message')) return 'Hello! This is a test message.';
+    if (context.includes('description')) return 'This is a test description for the form field.';
+    if (context.includes('content')) return 'This is test content for web crawling and form testing.';
+    return 'This is a test textarea content for web crawling purposes.';
+  }
+  
+  // Title fields
+  if (context.includes('title') || context.includes('subject') || context.includes('headline')) {
+    return 'Test Article Title';
+  }
+  
+  // Address fields
+  if (context.includes('address') || context.includes('street') || context.includes('city') || context.includes('zip') || context.includes('postal')) {
+    if (context.includes('street')) return '123 Main Street';
+    if (context.includes('city')) return 'New York';
+    if (context.includes('zip') || context.includes('postal')) return '10001';
+    if (context.includes('state')) return 'NY';
+    if (context.includes('country')) return 'United States';
+    return '123 Main Street, New York, NY 10001';
+  }
+  
+  // Company fields
+  if (context.includes('company') || context.includes('organization') || context.includes('business')) {
+    return 'Test Company Inc.';
+  }
+  
+  // Job/Position fields
+  if (context.includes('job') || context.includes('position') || context.includes('role') || context.includes('title')) {
+    return 'Software Engineer';
+  }
+  
+  // Search fields
+  if (context.includes('search') || context.includes('query')) {
+    return 'test search query';
+  }
+  
+  // Default based on type
+  switch (type) {
+    case 'text':
+      return 'Test Input Data';
+    case 'email':
+      return 'test@example.com';
+    case 'password':
+      return 'TestPassword123!';
+    case 'url':
+      return 'https://example.com';
+    case 'number':
+      return '123';
+    case 'tel':
+      return '+1-555-123-4567';
+    case 'date':
+      return '1990-01-01';
+    case 'time':
+      return '12:00';
+    default:
+      return 'Test Value';
+  }
+}
+
+// Helper function to handle logout as final step
+async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState) {
+  if (navigationTree.logoutButtons && navigationTree.logoutButtons.length > 0) {
+    console.log(`\n🚪 Final step: Handling logout/sign out`);
+    
+    try {
+      // Take screenshot before logout
+      const beforeLogoutTimestamp = Date.now();
+      const beforeLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${beforeLogoutTimestamp}_before_logout.png`);
+      
+      // Add step for logout attempt
+      addCrawlStep(
+        crawlState,
+        'logout_attempt',
+        page.url(),
+        await page.title(),
+        beforeLogoutScreenshot,
+        `Attempting to logout/sign out as final step`,
+        undefined,
+        false,
+        undefined,
+        undefined
+      );
+      
+      // Try to click the first logout button
+      const logoutButton = navigationTree.logoutButtons[0];
+      if (logoutButton && await logoutButton.isVisible()) {
+        // Highlight the logout button
+        await logoutButton.evaluate((el: any) => {
+          el.style.border = '3px solid #FF5722';
+          el.style.backgroundColor = 'rgba(255, 87, 34, 0.2)';
+          el.style.transition = 'all 0.3s ease';
+        });
+        
+        console.log(`🚪 Clicking logout/sign out button...`);
+        await logoutButton.click();
+        await page.waitForTimeout(3000); // Wait for logout
+        
+        // Take screenshot after logout
+        const afterLogoutTimestamp = Date.now();
+        const afterLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterLogoutTimestamp}_after_logout.png`);
+        
+        // Add step for successful logout
+        addCrawlStep(
+          crawlState,
+          'logout_success',
+          page.url(),
+          await page.title(),
+          afterLogoutScreenshot,
+          `Successfully logged out/signed out`,
+          undefined,
+          false,
+          undefined,
+          undefined
+        );
+        
+        console.log(`✅ Logout/sign out completed successfully`);
+      } else {
+        console.log(`⚠️ Logout button not visible or accessible`);
+        
+        // Add step for logout failure
+        addCrawlStep(
+          crawlState,
+          'logout_failed',
+          page.url(),
+          await page.title(),
+          beforeLogoutScreenshot,
+          `Logout button not accessible`,
+          undefined,
+          false,
+          undefined,
+          undefined
+        );
+      }
+    } catch (error) {
+      console.log(`❌ Error during logout: ${error}`);
+      
+      // Take screenshot for error case
+      const errorTimestamp = Date.now();
+      const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_logout_error.png`);
+      
+      // Add step for logout error
+      addCrawlStep(
+        crawlState,
+        'logout_error',
+        page.url(),
+        await page.title(),
+        errorScreenshot,
+        `Error during logout: ${error}`,
+        undefined,
+        false,
+        undefined,
+        undefined
+      );
+    }
+  } else {
+    console.log(`ℹ️ No logout/sign out buttons found - skipping logout step`);
+  }
+}
+
 // Helper function to execute MCP-suggested actions
 async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState): Promise<TodoItem[]> {
   const newTodoItems: TodoItem[] = [];
   
+  // Check for logout/sign out buttons first (these should be clicked last)
+  const logoutButtons = await page.$$('button:has-text("Logout"), button:has-text("Sign out"), button:has-text("Log out"), a:has-text("Logout"), a:has-text("Sign out"), a:has-text("Log out"), [data-testid*="logout"], [data-testid*="signout"]');
+  
+  if (logoutButtons.length > 0) {
+    console.log(`🚪 Found ${logoutButtons.length} logout/sign out buttons - will be clicked as final step`);
+    // Store logout buttons for later use
+    navigationTree.logoutButtons = logoutButtons;
+  }
+
   // Enhanced form filling with 2 items and submission
   if (mcpAnalysis.formFields && mcpAnalysis.formFields.length > 0) {
     console.log(`📝 MCP Agent found ${mcpAnalysis.formFields.length} form fields to fill`);
@@ -418,13 +646,22 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
       mcpAnalysis
     );
     
-    // Fill forms with MCP-suggested dummy data
+    // Enhanced form filling with intelligent data based on placeholders and form purpose
     for (const field of mcpAnalysis.formFields) {
       try {
         const element = await page.$(field.selector);
         if (element && await element.isVisible()) {
-          await element.fill(field.suggestedValue);
-          console.log(`📝 MCP filled ${field.label} with: ${field.suggestedValue}`);
+          // Get additional context from the element
+          const placeholder = await element.getAttribute('placeholder') || '';
+          const name = await element.getAttribute('name') || '';
+          const id = await element.getAttribute('id') || '';
+          const type = await element.getAttribute('type') || 'text';
+          
+          // Generate intelligent data based on context
+          const intelligentValue = generateIntelligentFormData(placeholder, name, id, type, field.label);
+          
+          await element.fill(intelligentValue);
+          console.log(`📝 MCP filled ${field.label} (${placeholder || name || id}) with: ${intelligentValue}`);
           
           // Take screenshot after each field is filled
           const fieldTimestamp = Date.now();
@@ -436,7 +673,7 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
             currentUrl,
             await page.title(),
             fieldScreenshot,
-            `Filled field: ${field.label} with: ${field.suggestedValue}`,
+            `Filled field: ${field.label} (${placeholder || name || id}) with: ${intelligentValue}`,
             [field],
             false,
             undefined,

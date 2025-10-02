@@ -2,27 +2,28 @@ import { chromium, Browser, Page } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
-export async function launchBrowser(): Promise<Browser> {
-  // Default to headed mode for MCP integration
-  const headless = process.env.HEADLESS === 'true' ? true : false;
-  const slowMo = process.env.SLOW_MO ? Number(process.env.SLOW_MO) : 1000; // Default 1 second delay
-  const devtools = process.env.DEVTOOLS === 'true' ? true : false;
-  
+export async function launchBrowser(config?: any): Promise<Browser> {
+  // Use config if provided, otherwise fall back to environment variables
+  const headless = config?.browser?.headless ?? (process.env.HEADLESS === 'true' ? true : false);
+  const slowMo = config?.browser?.slowMo ?? (process.env.SLOW_MO ? Number(process.env.SLOW_MO) : 1000);
+  const devtools = config?.browser?.devtools ?? (process.env.DEVTOOLS === 'true' ? true : false);
+  const args = config?.browser?.args ?? [
+    '--start-maximized',
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-web-security',
+    '--allow-running-insecure-content'
+  ];
+
   console.log(`🖥️ Launching browser: ${headless ? 'headless' : 'headed'} mode`);
   console.log(`⏱️ Slow motion: ${slowMo}ms delay between actions`);
-  
-  return await chromium.launch({ 
-    headless, 
-    slowMo, 
-    devtools, 
-    args: [
-      '--start-maximized',
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-web-security',
-      '--allow-running-insecure-content'
-    ] 
+
+  return await chromium.launch({
+    headless,
+    slowMo,
+    devtools,
+    args
   });
 }
 

@@ -1,0 +1,32 @@
+{
+  "crawler": {
+    "baseUrl": "https://demo.realworld.show",
+    "loginUrl": "https://demo.realworld.show/#/login",
+    "registerUrl": "https://demo.realworld.show/#/register",
+    "maxPages": 50,
+    "timeout": 10000,
+    "slowMo": 1000
+  },
+  "ai": {
+    "modelName": "gemini-pro",
+    "fallbackModels": ["gemini-1.5-flash", "gemini-1.5-pro"],
+    "endpoint": "https://generativelanguage.googleapis.com/v1beta/models"
+  },
+  "browser": {
+    "headless": false,
+    "devtools": false,
+    "args": [
+      "--start-maximized",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-web-security",
+      "--allow-running-insecure-content"
+    ]
+  },
+  "output": {
+    "screenshotDir": "out/images",
+    "mapFile": "out/map.json",
+    "timestampFormat": "YYYY-MM-DD_HH-mm-ss"
+  }
+}

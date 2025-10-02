@@ -1,12 +1,23 @@
 import { ensureDirSync } from 'fs-extra';
 import path from 'path';
+import fs from 'fs';
 import { runMCPSmartCrawl } from './mcpSmartCrawler.js';
+
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Load configuration
+const config = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'config.json'), 'utf8'));
 
 const OUT = path.resolve(process.cwd(), 'out');
 ensureDirSync(OUT);
 
 async function main() {
-  const seed = 'https://demo.realworld.show/#/login';
+  // Get configuration from config.json
+  const seed = config.crawler.loginUrl;
+  const baseUrl = config.crawler.baseUrl;
+  
   // create new account for signup
   const profile = {
     username: `testuser_${Date.now()}`,
@@ -14,13 +25,23 @@ async function main() {
     password: 'Password123!'
   };
 
-  // Gemini API key for MCP integration
-  const geminiApiKey = 'AIzaSyDAxKG31sXT0Ph5xhJa5m61KdoiEWeL5G0';
+  // Get Gemini API key from environment
+  const geminiApiKey = process.env.GEMINI_API_KEY;
   
+  if (!geminiApiKey) {
+    console.error('❌ GEMINI_API_KEY not found in environment variables');
+    console.log('📝 Please create a .env file with your Gemini API key');
+    console.log('📝 See .env_example for reference');
+    process.exit(1);
+  }
+
   console.log('🤖 Starting MCP-powered smart crawl for', seed);
+  console.log('🌐 Base URL:', baseUrl);
   console.log('📧 Creating new account:', profile.email);
   console.log('🔑 Using Gemini API key for MCP integration');
-  await runMCPSmartCrawl(seed, profile, OUT, geminiApiKey);
+  console.log('⚙️ Configuration loaded from config.json');
+  
+  await runMCPSmartCrawl(seed, profile, OUT, geminiApiKey, config);
   console.log('✅ MCP crawl completed. Results in', OUT);
 }
 
