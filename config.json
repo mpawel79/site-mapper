@@ -36,26 +36,56 @@
     "timestampFormat": "YYYY-MM-DD_HH-mm-ss",
     "progressSaveInterval": 5
   },
-  "formFilling": {
-    "maxFieldsPerForm": 6,
-    "fieldTypes": {
-      "email": "test@example.com",
-      "password": "TestPassword123!",
-      "username": "testuser",
-      "name": "John Doe",
-      "phone": "+1-555-123-4567",
-      "url": "https://example.com",
-      "number": "123",
-      "date": "1990-01-01",
-      "time": "12:00",
-      "textarea": "This is a test comment for web crawling purposes.",
-      "title": "Test Article Title",
-      "address": "123 Main Street, New York, NY 10001",
-      "company": "Test Company Inc.",
-      "job": "Software Engineer",
-      "search": "test search query"
+  "agent_suggestions": [
+    {
+      "situation_name": "sign up to service",
+      "given": "you are on sign up page",
+      "when": "credentials are required to provide",
+      "then": "provide as username: test-username, email: test@example.com, password: test_password and submit"
+    },
+    {
+      "situation_name": "login to service",
+      "given": "you are on login page",
+      "when": "authentication is required",
+      "then": "provide username: testuser, password: TestPassword123! and submit"
+    },
+    {
+      "situation_name": "create article",
+      "given": "you are on article creation page",
+      "when": "content needs to be created",
+      "then": "provide title: Test Article Title, content: This is test content for web crawling purposes and submit"
+    },
+    {
+      "situation_name": "add comment",
+      "given": "you are on article or post page",
+      "when": "commenting is available",
+      "then": "provide comment: This is a test comment for web crawling purposes and submit"
+    },
+    {
+      "situation_name": "update profile",
+      "given": "you are on profile settings page",
+      "when": "profile information needs updating",
+      "then": "provide bio: Test bio content, website: https://example.com, location: New York and submit"
+    },
+    {
+      "situation_name": "search content",
+      "given": "you are on search page",
+      "when": "search functionality is available",
+      "then": "provide search query: test search query and submit"
+    },
+    {
+      "situation_name": "contact form",
+      "given": "you are on contact page",
+      "when": "contact information is required",
+      "then": "provide name: John Doe, email: test@example.com, message: This is a test contact message and submit"
+    },
+    {
+      "situation_name": "newsletter signup",
+      "given": "you are on newsletter signup",
+      "when": "email subscription is offered",
+      "then": "provide email: test@example.com and submit"
     }
-  },
+  ],
   "logout": {
     "detectionSelectors": [
       "button:has-text('Logout')",

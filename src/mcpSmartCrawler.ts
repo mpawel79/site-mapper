@@ -398,119 +398,101 @@ function addCrawlStep(
   return stepId;
 }
 
-// Helper function to generate intelligent form data based on context
+// Helper function to generate intelligent form data based on agent suggestions
 function generateIntelligentFormData(placeholder: string, name: string, id: string, type: string, label: string, config: any): string {
   const context = `${placeholder} ${name} ${id} ${label}`.toLowerCase();
-  const fieldTypes = config.formFilling.fieldTypes;
+  const agentSuggestions = config.agent_suggestions;
   
-  // Email fields
-  if (type === 'email' || context.includes('email') || context.includes('e-mail')) {
-    return fieldTypes.email;
+  // Find matching situation based on context
+  const matchingSuggestion = agentSuggestions.find((suggestion: any) => {
+    const given = suggestion.given.toLowerCase();
+    const when = suggestion.when.toLowerCase();
+    const then = suggestion.then.toLowerCase();
+    
+    // Check if context matches any part of the suggestion
+    return context.includes('sign') && given.includes('sign up') ||
+           context.includes('login') && given.includes('login') ||
+           context.includes('article') && given.includes('article') ||
+           context.includes('comment') && given.includes('comment') ||
+           context.includes('profile') && given.includes('profile') ||
+           context.includes('search') && given.includes('search') ||
+           context.includes('contact') && given.includes('contact') ||
+           context.includes('newsletter') && given.includes('newsletter');
+  });
+  
+  if (matchingSuggestion) {
+    // Extract data from the "then" clause
+    const thenClause = matchingSuggestion.then;
+    
+    // Email fields
+    if (type === 'email' || context.includes('email') || context.includes('e-mail')) {
+      const emailMatch = thenClause.match(/email:\s*([^\s,]+)/);
+      return emailMatch ? emailMatch[1] : 'test@example.com';
+    }
+    
+    // Password fields
+    if (type === 'password' || context.includes('password') || context.includes('pass')) {
+      const passwordMatch = thenClause.match(/password:\s*([^\s,]+)/);
+      return passwordMatch ? passwordMatch[1] : 'TestPassword123!';
+    }
+    
+    // Username fields
+    if (context.includes('username') || context.includes('user') || context.includes('login')) {
+      const usernameMatch = thenClause.match(/username:\s*([^\s,]+)/);
+      return usernameMatch ? usernameMatch[1] : 'testuser';
+    }
+    
+    // Title fields
+    if (context.includes('title') || context.includes('subject') || context.includes('headline')) {
+      const titleMatch = thenClause.match(/title:\s*([^,]+)/);
+      return titleMatch ? titleMatch[1].trim() : 'Test Article Title';
+    }
+    
+    // Comment/Content fields
+    if (type === 'textarea' || context.includes('comment') || context.includes('message') || context.includes('content')) {
+      const commentMatch = thenClause.match(/comment:\s*([^,]+)/);
+      const contentMatch = thenClause.match(/content:\s*([^,]+)/);
+      const messageMatch = thenClause.match(/message:\s*([^,]+)/);
+      
+      if (commentMatch) return commentMatch[1].trim();
+      if (contentMatch) return contentMatch[1].trim();
+      if (messageMatch) return messageMatch[1].trim();
+      return 'This is a test comment for web crawling purposes.';
+    }
+    
+    // Name fields
+    if (context.includes('name') || context.includes('first') || context.includes('last')) {
+      const nameMatch = thenClause.match(/name:\s*([^,]+)/);
+      return nameMatch ? nameMatch[1].trim() : 'John Doe';
+    }
+    
+    // Search fields
+    if (context.includes('search') || context.includes('query')) {
+      const searchMatch = thenClause.match(/query:\s*([^,]+)/);
+      return searchMatch ? searchMatch[1].trim() : 'test search query';
+    }
   }
   
-  // Password fields
-  if (type === 'password' || context.includes('password') || context.includes('pass')) {
-    return fieldTypes.password;
-  }
-  
-  // Username fields
-  if (context.includes('username') || context.includes('user') || context.includes('login')) {
-    return fieldTypes.username;
-  }
-  
-  // Name fields
-  if (context.includes('name') || context.includes('first') || context.includes('last')) {
-    if (context.includes('first')) return 'John';
-    if (context.includes('last')) return 'Doe';
-    return fieldTypes.name;
-  }
-  
-  // Phone fields
-  if (type === 'tel' || context.includes('phone') || context.includes('mobile') || context.includes('telephone')) {
-    return fieldTypes.phone;
-  }
-  
-  // URL fields
-  if (type === 'url' || context.includes('website') || context.includes('url') || context.includes('link')) {
-    return fieldTypes.url;
-  }
-  
-  // Number fields
-  if (type === 'number' || context.includes('age') || context.includes('count') || context.includes('quantity')) {
-    if (context.includes('age')) return '25';
-    if (context.includes('count') || context.includes('quantity')) return '5';
-    return fieldTypes.number;
-  }
-  
-  // Date fields
-  if (type === 'date' || context.includes('date') || context.includes('birth')) {
-    return fieldTypes.date;
-  }
-  
-  // Time fields
-  if (type === 'time' || context.includes('time')) {
-    return fieldTypes.time;
-  }
-  
-  // Textarea fields
-  if (type === 'textarea' || context.includes('comment') || context.includes('message') || context.includes('description') || context.includes('content')) {
-    if (context.includes('comment')) return fieldTypes.textarea;
-    if (context.includes('message')) return 'Hello! This is a test message.';
-    if (context.includes('description')) return 'This is a test description for the form field.';
-    if (context.includes('content')) return 'This is test content for web crawling and form testing.';
-    return fieldTypes.textarea;
-  }
-  
-  // Title fields
-  if (context.includes('title') || context.includes('subject') || context.includes('headline')) {
-    return fieldTypes.title;
-  }
-  
-  // Address fields
-  if (context.includes('address') || context.includes('street') || context.includes('city') || context.includes('zip') || context.includes('postal')) {
-    if (context.includes('street')) return '123 Main Street';
-    if (context.includes('city')) return 'New York';
-    if (context.includes('zip') || context.includes('postal')) return '10001';
-    if (context.includes('state')) return 'NY';
-    if (context.includes('country')) return 'United States';
-    return fieldTypes.address;
-  }
-  
-  // Company fields
-  if (context.includes('company') || context.includes('organization') || context.includes('business')) {
-    return fieldTypes.company;
-  }
-  
-  // Job/Position fields
-  if (context.includes('job') || context.includes('position') || context.includes('role') || context.includes('title')) {
-    return fieldTypes.job;
-  }
-  
-  // Search fields
-  if (context.includes('search') || context.includes('query')) {
-    return fieldTypes.search;
-  }
-  
-  // Default based on type
+  // Fallback to type-based defaults
   switch (type) {
-    case 'text':
-      return 'Test Input Data';
     case 'email':
-      return fieldTypes.email;
+      return 'test@example.com';
     case 'password':
-      return fieldTypes.password;
+      return 'TestPassword123!';
     case 'url':
-      return fieldTypes.url;
+      return 'https://example.com';
     case 'number':
-      return fieldTypes.number;
+      return '123';
     case 'tel':
-      return fieldTypes.phone;
+      return '+1-555-123-4567';
     case 'date':
-      return fieldTypes.date;
+      return '1990-01-01';
     case 'time':
-      return fieldTypes.time;
+      return '12:00';
+    case 'textarea':
+      return 'This is a test comment for web crawling purposes.';
     default:
-      return 'Test Value';
+      return 'Test Input Data';
   }
 }
 
