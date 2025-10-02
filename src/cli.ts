@@ -10,7 +10,12 @@ dotenv.config();
 // Load configuration
 const config = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'config.json'), 'utf8'));
 
-const OUT = path.resolve(process.cwd(), 'out');
+// Create session-specific output directory
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+const baseUrl = config.crawler.baseUrl;
+const domain = baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
+const sessionDir = `session_${timestamp}__${domain}`;
+const OUT = path.resolve(process.cwd(), 'out', sessionDir);
 ensureDirSync(OUT);
 
 async function main() {
@@ -37,6 +42,8 @@ async function main() {
 
   console.log('🤖 Starting MCP-powered smart crawl for', seed);
   console.log('🌐 Base URL:', baseUrl);
+  console.log('📁 Session Directory:', sessionDir);
+  console.log('📂 Output Path:', OUT);
   console.log('📧 Creating new account:', profile.email);
   console.log('🔑 Using Gemini API key for MCP integration');
   console.log('⚙️ Configuration loaded from config.json');

@@ -51,6 +51,18 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
   const page = await newPage(browser);
   fs.ensureDirSync(outDir);
   fs.ensureDirSync(path.join(outDir, 'images'));
+  
+  // Log session information
+  const sessionInfo = {
+    sessionDir: path.basename(outDir),
+    startTime: new Date().toISOString(),
+    baseUrl: config.crawler.baseUrl,
+    domain: config.crawler.baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '')
+  };
+  
+  console.log(`📁 Session: ${sessionInfo.sessionDir}`);
+  console.log(`🕐 Started: ${sessionInfo.startTime}`);
+  console.log(`🌐 Domain: ${sessionInfo.domain}`);
 
   // Initialize MCP Agent with Gemini API key
   const mcpAgent = new MCPAgent(geminiApiKey);
@@ -279,7 +291,13 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
             pagesDiscovered: pageCount,
             todoQueueSize: navigationTree.todoQueue.length,
             visitedUrls: navigationTree.visitedUrls.size,
-            totalSteps: crawlState.stepCounter
+            totalSteps: crawlState.stepCounter,
+            sessionInfo: {
+              sessionDir: sessionInfo.sessionDir,
+              startTime: sessionInfo.startTime,
+              baseUrl: sessionInfo.baseUrl,
+              domain: sessionInfo.domain
+            }
           },
           nodes,
           edges,
@@ -311,17 +329,24 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
   
   // Final save with MCP context
   const finalResult = {
-    metadata: { 
-      seed, 
-      profile, 
+    metadata: {
+      seed,
+      profile,
       ts: new Date().toISOString(),
       mcpPowered: true,
       geminiApiKey: geminiApiKey.substring(0, 10) + '...',
       totalPages: pageCount,
       visitedUrls: navigationTree.visitedUrls.size,
       todoQueueSize: navigationTree.todoQueue.length,
-      totalSteps: crawlState.stepCounter
-    }, 
+      totalSteps: crawlState.stepCounter,
+      sessionInfo: {
+        sessionDir: sessionInfo.sessionDir,
+        startTime: sessionInfo.startTime,
+        endTime: new Date().toISOString(),
+        baseUrl: sessionInfo.baseUrl,
+        domain: sessionInfo.domain
+      }
+    },
     nodes, 
     edges,
     navigationTree: {
