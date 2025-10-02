@@ -110,7 +110,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
   });
   
   let pageCount = 0;
-  const maxPages = 50;
+  const maxPages = config.crawler.maxPages;
   
   while (navigationTree.todoQueue.length > 0 && pageCount < maxPages) {
     // Get next item from TODO queue (highest priority first)
@@ -137,20 +137,20 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       // Navigate to page with proper waiting
       console.log(`⏳ Navigating to ${todoItem.url}...`);
       console.log(`🖥️ Watch the browser - it will navigate to: ${todoItem.title}`);
-      await page.goto(todoItem.url, { waitUntil: 'networkidle', timeout: 10000 });
+      await page.goto(todoItem.url, { waitUntil: 'networkidle', timeout: config.crawler.timeout });
       
       // Wait for page to fully load
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(config.crawler.waitForLoad);
       
       // Add visual indicator in browser
-      await page.evaluate(() => {
+      await page.evaluate((visualConfig) => {
         const indicator = document.createElement('div');
         indicator.id = 'mcp-agent-indicator';
         indicator.style.cssText = `
           position: fixed;
           top: 10px;
           right: 10px;
-          background: #4CAF50;
+          background: ${visualConfig.indicatorColor};
           color: white;
           padding: 10px;
           border-radius: 5px;
@@ -162,12 +162,15 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
         indicator.textContent = '🤖 MCP Agent Active';
         document.body.appendChild(indicator);
         
-        // Remove after 3 seconds
+        // Remove after configured duration
         setTimeout(() => {
           if (indicator.parentNode) {
             indicator.parentNode.removeChild(indicator);
           }
-        }, 3000);
+        }, visualConfig.duration);
+      }, {
+        indicatorColor: config.visual.indicatorColor,
+        duration: config.crawler.visualIndicatorDuration
       });
       
       // Take screenshot with timestamp
@@ -219,7 +222,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       
       // Execute MCP-suggested actions and gather new TODO items
       console.log('🎯 Executing MCP-suggested actions...');
-      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir, crawlState);
+      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir, crawlState, config);
       
       // Add new TODO items to queue
       for (const newItem of newTodoItems) {
@@ -265,7 +268,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       console.log(`   🤖 MCP Strategy: ${mcpAnalysis.crawlingStrategy}`);
       
       // Save progress periodically
-      if (pageCount % 5 === 0) {
+      if (pageCount % config.output.progressSaveInterval === 0) {
         const progress = {
           metadata: {
             seed,
@@ -396,70 +399,71 @@ function addCrawlStep(
 }
 
 // Helper function to generate intelligent form data based on context
-function generateIntelligentFormData(placeholder: string, name: string, id: string, type: string, label: string): string {
+function generateIntelligentFormData(placeholder: string, name: string, id: string, type: string, label: string, config: any): string {
   const context = `${placeholder} ${name} ${id} ${label}`.toLowerCase();
+  const fieldTypes = config.formFilling.fieldTypes;
   
   // Email fields
   if (type === 'email' || context.includes('email') || context.includes('e-mail')) {
-    return 'test@example.com';
+    return fieldTypes.email;
   }
   
   // Password fields
   if (type === 'password' || context.includes('password') || context.includes('pass')) {
-    return 'TestPassword123!';
+    return fieldTypes.password;
   }
   
   // Username fields
   if (context.includes('username') || context.includes('user') || context.includes('login')) {
-    return 'testuser';
+    return fieldTypes.username;
   }
   
   // Name fields
   if (context.includes('name') || context.includes('first') || context.includes('last')) {
     if (context.includes('first')) return 'John';
     if (context.includes('last')) return 'Doe';
-    return 'John Doe';
+    return fieldTypes.name;
   }
   
   // Phone fields
   if (type === 'tel' || context.includes('phone') || context.includes('mobile') || context.includes('telephone')) {
-    return '+1-555-123-4567';
+    return fieldTypes.phone;
   }
   
   // URL fields
   if (type === 'url' || context.includes('website') || context.includes('url') || context.includes('link')) {
-    return 'https://example.com';
+    return fieldTypes.url;
   }
   
   // Number fields
   if (type === 'number' || context.includes('age') || context.includes('count') || context.includes('quantity')) {
     if (context.includes('age')) return '25';
     if (context.includes('count') || context.includes('quantity')) return '5';
-    return '123';
+    return fieldTypes.number;
   }
   
   // Date fields
   if (type === 'date' || context.includes('date') || context.includes('birth')) {
-    return '1990-01-01';
+    return fieldTypes.date;
   }
   
   // Time fields
   if (type === 'time' || context.includes('time')) {
-    return '12:00';
+    return fieldTypes.time;
   }
   
   // Textarea fields
   if (type === 'textarea' || context.includes('comment') || context.includes('message') || context.includes('description') || context.includes('content')) {
-    if (context.includes('comment')) return 'This is a test comment for web crawling purposes.';
+    if (context.includes('comment')) return fieldTypes.textarea;
     if (context.includes('message')) return 'Hello! This is a test message.';
     if (context.includes('description')) return 'This is a test description for the form field.';
     if (context.includes('content')) return 'This is test content for web crawling and form testing.';
-    return 'This is a test textarea content for web crawling purposes.';
+    return fieldTypes.textarea;
   }
   
   // Title fields
   if (context.includes('title') || context.includes('subject') || context.includes('headline')) {
-    return 'Test Article Title';
+    return fieldTypes.title;
   }
   
   // Address fields
@@ -469,22 +473,22 @@ function generateIntelligentFormData(placeholder: string, name: string, id: stri
     if (context.includes('zip') || context.includes('postal')) return '10001';
     if (context.includes('state')) return 'NY';
     if (context.includes('country')) return 'United States';
-    return '123 Main Street, New York, NY 10001';
+    return fieldTypes.address;
   }
   
   // Company fields
   if (context.includes('company') || context.includes('organization') || context.includes('business')) {
-    return 'Test Company Inc.';
+    return fieldTypes.company;
   }
   
   // Job/Position fields
   if (context.includes('job') || context.includes('position') || context.includes('role') || context.includes('title')) {
-    return 'Software Engineer';
+    return fieldTypes.job;
   }
   
   // Search fields
   if (context.includes('search') || context.includes('query')) {
-    return 'test search query';
+    return fieldTypes.search;
   }
   
   // Default based on type
@@ -492,19 +496,19 @@ function generateIntelligentFormData(placeholder: string, name: string, id: stri
     case 'text':
       return 'Test Input Data';
     case 'email':
-      return 'test@example.com';
+      return fieldTypes.email;
     case 'password':
-      return 'TestPassword123!';
+      return fieldTypes.password;
     case 'url':
-      return 'https://example.com';
+      return fieldTypes.url;
     case 'number':
-      return '123';
+      return fieldTypes.number;
     case 'tel':
-      return '+1-555-123-4567';
+      return fieldTypes.phone;
     case 'date':
-      return '1990-01-01';
+      return fieldTypes.date;
     case 'time':
-      return '12:00';
+      return fieldTypes.time;
     default:
       return 'Test Value';
   }
@@ -611,11 +615,12 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
 }
 
 // Helper function to execute MCP-suggested actions
-async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState): Promise<TodoItem[]> {
+async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState, config: any): Promise<TodoItem[]> {
   const newTodoItems: TodoItem[] = [];
   
   // Check for logout/sign out buttons first (these should be clicked last)
-  const logoutButtons = await page.$$('button:has-text("Logout"), button:has-text("Sign out"), button:has-text("Log out"), a:has-text("Logout"), a:has-text("Sign out"), a:has-text("Log out"), [data-testid*="logout"], [data-testid*="signout"]');
+  const logoutSelectors = config.logout.detectionSelectors.join(', ');
+  const logoutButtons = await page.$$(logoutSelectors);
   
   if (logoutButtons.length > 0) {
     console.log(`🚪 Found ${logoutButtons.length} logout/sign out buttons - will be clicked as final step`);
@@ -658,7 +663,7 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
           const type = await element.getAttribute('type') || 'text';
           
           // Generate intelligent data based on context
-          const intelligentValue = generateIntelligentFormData(placeholder, name, id, type, field.label);
+          const intelligentValue = generateIntelligentFormData(placeholder, name, id, type, field.label, config);
           
           await element.fill(intelligentValue);
           console.log(`📝 MCP filled ${field.label} (${placeholder || name || id}) with: ${intelligentValue}`);
@@ -727,21 +732,24 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     if (submitButtons.length > 0) {
       console.log(`🎯 MCP Agent found ${submitButtons.length} submit buttons`);
       
-      // Try to submit up to 2 forms
-      for (let i = 0; i < Math.min(2, submitButtons.length); i++) {
+      // Try to submit up to configured limit
+      for (let i = 0; i < Math.min(config.crawler.formSubmissionLimit, submitButtons.length); i++) {
         try {
           const submitButton = submitButtons[i];
           if (await submitButton.isVisible()) {
             // Highlight the submit button
-            await submitButton.evaluate((el: any) => {
-              el.style.border = '3px solid #4CAF50';
-              el.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+            await submitButton.evaluate((el: any, visualConfig: any) => {
+              el.style.border = `3px solid ${visualConfig.formHighlightColor}`;
+              el.style.backgroundColor = visualConfig.formHighlightBackground;
               el.style.transition = 'all 0.3s ease';
+            }, {
+              formHighlightColor: config.visual.formHighlightColor,
+              formHighlightBackground: config.visual.formHighlightBackground
             });
             
-            console.log(`🚀 MCP Agent submitting form ${i + 1}/2...`);
+            console.log(`🚀 MCP Agent submitting form ${i + 1}/${config.crawler.formSubmissionLimit}...`);
             await submitButton.click();
-            await page.waitForTimeout(3000); // Wait for submission
+            await page.waitForTimeout(config.crawler.waitForLoad); // Wait for submission
             
             // Take screenshot AFTER form submission
             const afterSubmitTimestamp = Date.now();
