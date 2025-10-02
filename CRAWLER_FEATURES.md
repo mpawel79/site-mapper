@@ -11,17 +11,20 @@ This is a sophisticated web crawling agent that combines Playwright automation w
 - **Smart Element Detection**: Identifies interactive elements, forms, and navigation options
 - **Priority-Based Exploration**: Ranks pages and actions by importance
 
-### 2. **Intelligent Form Interaction**
-- **Context-Aware Form Filling**: Analyzes placeholders, names, IDs, and field types to generate appropriate data
-- **Smart Data Generation**: Creates realistic test data based on field purpose:
-  - **Comment fields**: "This is a test comment for web crawling purposes."
-  - **Title fields**: "Test Article Title"
-  - **URL fields**: "https://example.com"
-  - **Email fields**: "test@example.com"
-  - **Password fields**: "TestPassword123!"
-  - **Bio fields**: Contextual bio content
-  - **Address fields**: Complete address information
-  - **Phone fields**: "+1-555-123-4567"
+### 2. **Intelligent Form Interaction with Agent Suggestions**
+- **Given-When-Then Scenarios**: Uses structured agent suggestions for context-aware form filling
+- **Scenario-Based Data Generation**: Matches page context to appropriate test scenarios:
+  - **Sign Up**: `username: test-username, email: test@example.com, password: test_password`
+  - **Login**: `username: testuser, password: TestPassword123!`
+  - **Article Creation**: `title: Test Article Title, content: This is test content for web crawling purposes`
+  - **Commenting**: `comment: This is a test comment for web crawling purposes`
+  - **Profile Updates**: `bio: Test bio content, website: https://example.com, location: New York`
+  - **Search**: `query: test search query`
+  - **Contact Forms**: `name: John Doe, email: test@example.com, message: This is a test contact message`
+  - **Newsletter**: `email: test@example.com`
+- **Smart Context Matching**: Automatically detects page type and applies appropriate scenario
+- **Natural Language Parsing**: Extracts test data from "then" clauses using regex patterns
+- **Fallback System**: Type-based defaults when no scenario matches
 - **Multi-Field Form Filling**: Automatically fills text, email, password, textarea, URL, number, date, and time fields
 - **Form Submission**: Submits up to 2 forms per page with visual feedback
 - **Error Handling**: Captures screenshots when form filling fails
@@ -168,6 +171,26 @@ interface NavigationTree {
 - `logout_failed` - Logout button not accessible
 - `logout_error` - Error during logout
 
+### **Agent Suggestions Configuration**
+```json
+{
+  "agent_suggestions": [
+    {
+      "situation_name": "sign up to service",
+      "given": "you are on sign up page",
+      "when": "credentials are required to provide",
+      "then": "provide as username: test-username, email: test@example.com, password: test_password and submit"
+    },
+    {
+      "situation_name": "create article",
+      "given": "you are on article creation page",
+      "when": "content needs to be created",
+      "then": "provide title: Test Article Title, content: This is test content for web crawling purposes and submit"
+    }
+  ]
+}
+```
+
 ### **Intelligent Form Field Examples**
 - **Comment Field**: `"Filled field: text area (Write a comment...) with: This is a test comment for web crawling purposes."`
 - **Title Field**: `"Filled field: text input (Article Title) with: Test Article Title"`
@@ -244,12 +267,16 @@ npm run start:slow
 - Interactive element prioritization
 - Form field type detection
 
-### **Intelligent Data Generation**
+### **Intelligent Data Generation with Agent Suggestions**
+- **Given-When-Then Structure**: Uses structured scenarios for context-aware data generation
+- **Scenario Matching**: Automatically matches page context to appropriate test scenarios
+- **Natural Language Parsing**: Extracts test data from "then" clauses using regex patterns
 - **Context-Aware Analysis**: Analyzes placeholders, names, IDs, and field types
-- **Smart Data Selection**: Generates appropriate data based on field purpose
-- **Realistic Test Values**: Contextually appropriate dummy data
+- **Smart Data Selection**: Generates appropriate data based on field purpose and scenario
+- **Realistic Test Values**: Contextually appropriate dummy data from scenario descriptions
 - **Field-Specific Intelligence**: Different data for comments, titles, URLs, emails, etc.
 - **Validation-Aware Inputs**: Generates data that passes common validation rules
+- **Fallback System**: Type-based defaults when no scenario matches
 
 ### **State Persistence**
 - Periodic progress saves
@@ -268,7 +295,8 @@ npm run start:slow
 7. **Error Resilience**: Continues despite failures
 8. **State Tracking**: Complete interaction timeline with intelligent context
 9. **Professional Output**: Structured JSON with linked steps and smart data
-10. **Context-Aware Intelligence**: Understands field purpose and generates appropriate data
+10. **Context-Aware Intelligence**: Understands field purpose and generates appropriate data using scenario-based matching
+11. **Agent Suggestions**: Configurable Given-When-Then scenarios for different page types and interactions
 
 ## 🔮 Future Enhancements
 
