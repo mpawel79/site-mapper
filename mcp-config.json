@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx @playwright/mcp@latest",
+      "env": {
+        "GEMINI_API_KEY": "AIzaSyDAxKG31sXT0Ph5xhJa5m61KdoiEWeL5G0"
+      }
+    }
+  },
+  "gemini": {
+    "apiKey": "AIzaSyDAxKG31sXT0Ph5xhJa5m61KdoiEWeL5G0",
+    "model": "gemini-1.5-flash",
+    "timeout": 30000
+  },
+  "crawling": {
+    "maxPages": 50,
+    "timeout": 10000,
+    "waitTime": 2000,
+    "mcpOptimized": true,
+    "aiPowered": true
+  }
+}

@@ -1,0 +1,1420 @@
+{
+  "metadata": {
+    "seed": "https://demo.realworld.show/#/login",
+    "profile": {
+      "username": "testuser_1759365350533",
+      "email": "test+1759365350533@example.com",
+      "password": "Password123!"
+    },
+    "ts": "2025-10-02T00:38:13.866Z",
+    "mcpPowered": true,
+    "geminiApiKey": "AIzaSyDAxK...",
+    "totalPages": 5,
+    "visitedUrls": 5,
+    "todoQueueSize": 5
+  },
+  "nodes": [
+    {
+      "id": "n_0",
+      "url": "https://demo.realworld.show/#/",
+      "title": "Conduit",
+      "screenshot": "/Volumes/Store/prv/rn/claud_agent/trys/out/images/page_1.png",
+      "pageType": "webpage",
+      "crawlingStrategy": "intelligent_fallback_exploration",
+      "estimatedValue": 7,
+      "interactiveElements": 3,
+      "formFields": 6,
+      "mcpAnalysis": {
+        "pageType": "webpage",
+        "crawlingStrategy": "intelligent_fallback_exploration",
+        "interactiveElements": [
+          {
+            "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+            "type": "link",
+            "text": "internal navigation links",
+            "purpose": "page navigation",
+            "priority": 6,
+            "action": "click"
+          },
+          {
+            "selector": "button:not([disabled])",
+            "type": "button",
+            "text": "interactive buttons",
+            "purpose": "user interaction",
+            "priority": 5,
+            "action": "click"
+          },
+          {
+            "selector": "input[type=\"submit\"]",
+            "type": "submit",
+            "text": "form submission",
+            "purpose": "form interaction",
+            "priority": 4,
+            "action": "click"
+          }
+        ],
+        "formFields": [
+          {
+            "selector": "input[type=\"text\"]:not([readonly])",
+            "type": "text",
+            "label": "text input",
+            "suggestedValue": "Test Input Data",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"email\"]:not([readonly])",
+            "type": "email",
+            "label": "email input",
+            "suggestedValue": "test@example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"password\"]:not([readonly])",
+            "type": "password",
+            "label": "password input",
+            "suggestedValue": "TestPassword123",
+            "required": false
+          },
+          {
+            "selector": "textarea:not([readonly])",
+            "type": "textarea",
+            "label": "text area",
+            "suggestedValue": "This is a test comment for web crawling purposes.",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"url\"]:not([readonly])",
+            "type": "url",
+            "label": "URL input",
+            "suggestedValue": "https://example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"number\"]:not([readonly])",
+            "type": "number",
+            "label": "number input",
+            "suggestedValue": "123",
+            "required": false
+          }
+        ],
+        "navigationPriorities": [
+          {
+            "selector": "a[href*=\"article\"]",
+            "text": "article links",
+            "destination": "article pages",
+            "priority": 9,
+            "reason": "high-value content - articles contain the most information"
+          },
+          {
+            "selector": "a[href*=\"profile\"]",
+            "text": "profile links",
+            "destination": "user profiles",
+            "priority": 8,
+            "reason": "user-generated content - profiles show user activity"
+          },
+          {
+            "selector": "a[href*=\"editor\"]",
+            "text": "editor links",
+            "destination": "content creation",
+            "priority": 7,
+            "reason": "content creation interface"
+          },
+          {
+            "selector": "a[href*=\"settings\"]",
+            "text": "settings links",
+            "destination": "user settings",
+            "priority": 6,
+            "reason": "user preferences and configuration"
+          },
+          {
+            "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+            "text": "other navigation links",
+            "destination": "other pages",
+            "priority": 4,
+            "reason": "general navigation"
+          }
+        ],
+        "nextActions": [
+          "Prioritize article and profile links for maximum content discovery",
+          "Fill any visible forms with realistic test data",
+          "Click on interactive buttons and elements",
+          "Explore navigation menus and links",
+          "Look for user-generated content areas"
+        ],
+        "estimatedValue": 7
+      },
+      "timestamp": "2025-10-02T00:36:03.265Z"
+    },
+    {
+      "id": "n_1",
+      "url": "https://demo.realworld.show/#/article/how-to-learn-javascript-efficiently",
+      "title": "Conduit",
+      "screenshot": "/Volumes/Store/prv/rn/claud_agent/trys/out/images/page_2.png",
+      "pageType": "webpage",
+      "crawlingStrategy": "intelligent_fallback_exploration",
+      "estimatedValue": 7,
+      "interactiveElements": 3,
+      "formFields": 6,
+      "mcpAnalysis": {
+        "pageType": "webpage",
+        "crawlingStrategy": "intelligent_fallback_exploration",
+        "interactiveElements": [
+          {
+            "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+            "type": "link",
+            "text": "internal navigation links",
+            "purpose": "page navigation",
+            "priority": 6,
+            "action": "click"
+          },
+          {
+            "selector": "button:not([disabled])",
+            "type": "button",
+            "text": "interactive buttons",
+            "purpose": "user interaction",
+            "priority": 5,
+            "action": "click"
+          },
+          {
+            "selector": "input[type=\"submit\"]",
+            "type": "submit",
+            "text": "form submission",
+            "purpose": "form interaction",
+            "priority": 4,
+            "action": "click"
+          }
+        ],
+        "formFields": [
+          {
+            "selector": "input[type=\"text\"]:not([readonly])",
+            "type": "text",
+            "label": "text input",
+            "suggestedValue": "Test Input Data",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"email\"]:not([readonly])",
+            "type": "email",
+            "label": "email input",
+            "suggestedValue": "test@example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"password\"]:not([readonly])",
+            "type": "password",
+            "label": "password input",
+            "suggestedValue": "TestPassword123",
+            "required": false
+          },
+          {
+            "selector": "textarea:not([readonly])",
+            "type": "textarea",
+            "label": "text area",
+            "suggestedValue": "This is a test comment for web crawling purposes.",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"url\"]:not([readonly])",
+            "type": "url",
+            "label": "URL input",
+            "suggestedValue": "https://example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"number\"]:not([readonly])",
+            "type": "number",
+            "label": "number input",
+            "suggestedValue": "123",
+            "required": false
+          }
+        ],
+        "navigationPriorities": [
+          {
+            "selector": "a[href*=\"article\"]",
+            "text": "article links",
+            "destination": "article pages",
+            "priority": 9,
+            "reason": "high-value content - articles contain the most information"
+          },
+          {
+            "selector": "a[href*=\"profile\"]",
+            "text": "profile links",
+            "destination": "user profiles",
+            "priority": 8,
+            "reason": "user-generated content - profiles show user activity"
+          },
+          {
+            "selector": "a[href*=\"editor\"]",
+            "text": "editor links",
+            "destination": "content creation",
+            "priority": 7,
+            "reason": "content creation interface"
+          },
+          {
+            "selector": "a[href*=\"settings\"]",
+            "text": "settings links",
+            "destination": "user settings",
+            "priority": 6,
+            "reason": "user preferences and configuration"
+          },
+          {
+            "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+            "text": "other navigation links",
+            "destination": "other pages",
+            "priority": 4,
+            "reason": "general navigation"
+          }
+        ],
+        "nextActions": [
+          "Prioritize article and profile links for maximum content discovery",
+          "Fill any visible forms with realistic test data",
+          "Click on interactive buttons and elements",
+          "Explore navigation menus and links",
+          "Look for user-generated content areas"
+        ],
+        "estimatedValue": 7
+      },
+      "timestamp": "2025-10-02T00:36:37.710Z"
+    },
+    {
+      "id": "n_2",
+      "url": "https://demo.realworld.show/#/profile/testuser_1759365350533",
+      "title": "Conduit",
+      "screenshot": "/Volumes/Store/prv/rn/claud_agent/trys/out/images/page_3.png",
+      "pageType": "webpage",
+      "crawlingStrategy": "intelligent_fallback_exploration",
+      "estimatedValue": 7,
+      "interactiveElements": 3,
+      "formFields": 6,
+      "mcpAnalysis": {
+        "pageType": "webpage",
+        "crawlingStrategy": "intelligent_fallback_exploration",
+        "interactiveElements": [
+          {
+            "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+            "type": "link",
+            "text": "internal navigation links",
+            "purpose": "page navigation",
+            "priority": 6,
+            "action": "click"
+          },
+          {
+            "selector": "button:not([disabled])",
+            "type": "button",
+            "text": "interactive buttons",
+            "purpose": "user interaction",
+            "priority": 5,
+            "action": "click"
+          },
+          {
+            "selector": "input[type=\"submit\"]",
+            "type": "submit",
+            "text": "form submission",
+            "purpose": "form interaction",
+            "priority": 4,
+            "action": "click"
+          }
+        ],
+        "formFields": [
+          {
+            "selector": "input[type=\"text\"]:not([readonly])",
+            "type": "text",
+            "label": "text input",
+            "suggestedValue": "Test Input Data",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"email\"]:not([readonly])",
+            "type": "email",
+            "label": "email input",
+            "suggestedValue": "test@example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"password\"]:not([readonly])",
+            "type": "password",
+            "label": "password input",
+            "suggestedValue": "TestPassword123",
+            "required": false
+          },
+          {
+            "selector": "textarea:not([readonly])",
+            "type": "textarea",
+            "label": "text area",
+            "suggestedValue": "This is a test comment for web crawling purposes.",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"url\"]:not([readonly])",
+            "type": "url",
+            "label": "URL input",
+            "suggestedValue": "https://example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"number\"]:not([readonly])",
+            "type": "number",
+            "label": "number input",
+            "suggestedValue": "123",
+            "required": false
+          }
+        ],
+        "navigationPriorities": [
+          {
+            "selector": "a[href*=\"article\"]",
+            "text": "article links",
+            "destination": "article pages",
+            "priority": 9,
+            "reason": "high-value content - articles contain the most information"
+          },
+          {
+            "selector": "a[href*=\"profile\"]",
+            "text": "profile links",
+            "destination": "user profiles",
+            "priority": 8,
+            "reason": "user-generated content - profiles show user activity"
+          },
+          {
+            "selector": "a[href*=\"editor\"]",
+            "text": "editor links",
+            "destination": "content creation",
+            "priority": 7,
+            "reason": "content creation interface"
+          },
+          {
+            "selector": "a[href*=\"settings\"]",
+            "text": "settings links",
+            "destination": "user settings",
+            "priority": 6,
+            "reason": "user preferences and configuration"
+          },
+          {
+            "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+            "text": "other navigation links",
+            "destination": "other pages",
+            "priority": 4,
+            "reason": "general navigation"
+          }
+        ],
+        "nextActions": [
+          "Prioritize article and profile links for maximum content discovery",
+          "Fill any visible forms with realistic test data",
+          "Click on interactive buttons and elements",
+          "Explore navigation menus and links",
+          "Look for user-generated content areas"
+        ],
+        "estimatedValue": 7
+      },
+      "timestamp": "2025-10-02T00:37:12.520Z"
+    },
+    {
+      "id": "n_3",
+      "url": "https://demo.realworld.show/#/editor",
+      "title": "Conduit",
+      "screenshot": "/Volumes/Store/prv/rn/claud_agent/trys/out/images/page_4.png",
+      "pageType": "webpage",
+      "crawlingStrategy": "intelligent_fallback_exploration",
+      "estimatedValue": 7,
+      "interactiveElements": 3,
+      "formFields": 6,
+      "mcpAnalysis": {
+        "pageType": "webpage",
+        "crawlingStrategy": "intelligent_fallback_exploration",
+        "interactiveElements": [
+          {
+            "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+            "type": "link",
+            "text": "internal navigation links",
+            "purpose": "page navigation",
+            "priority": 6,
+            "action": "click"
+          },
+          {
+            "selector": "button:not([disabled])",
+            "type": "button",
+            "text": "interactive buttons",
+            "purpose": "user interaction",
+            "priority": 5,
+            "action": "click"
+          },
+          {
+            "selector": "input[type=\"submit\"]",
+            "type": "submit",
+            "text": "form submission",
+            "purpose": "form interaction",
+            "priority": 4,
+            "action": "click"
+          }
+        ],
+        "formFields": [
+          {
+            "selector": "input[type=\"text\"]:not([readonly])",
+            "type": "text",
+            "label": "text input",
+            "suggestedValue": "Test Input Data",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"email\"]:not([readonly])",
+            "type": "email",
+            "label": "email input",
+            "suggestedValue": "test@example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"password\"]:not([readonly])",
+            "type": "password",
+            "label": "password input",
+            "suggestedValue": "TestPassword123",
+            "required": false
+          },
+          {
+            "selector": "textarea:not([readonly])",
+            "type": "textarea",
+            "label": "text area",
+            "suggestedValue": "This is a test comment for web crawling purposes.",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"url\"]:not([readonly])",
+            "type": "url",
+            "label": "URL input",
+            "suggestedValue": "https://example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"number\"]:not([readonly])",
+            "type": "number",
+            "label": "number input",
+            "suggestedValue": "123",
+            "required": false
+          }
+        ],
+        "navigationPriorities": [
+          {
+            "selector": "a[href*=\"article\"]",
+            "text": "article links",
+            "destination": "article pages",
+            "priority": 9,
+            "reason": "high-value content - articles contain the most information"
+          },
+          {
+            "selector": "a[href*=\"profile\"]",
+            "text": "profile links",
+            "destination": "user profiles",
+            "priority": 8,
+            "reason": "user-generated content - profiles show user activity"
+          },
+          {
+            "selector": "a[href*=\"editor\"]",
+            "text": "editor links",
+            "destination": "content creation",
+            "priority": 7,
+            "reason": "content creation interface"
+          },
+          {
+            "selector": "a[href*=\"settings\"]",
+            "text": "settings links",
+            "destination": "user settings",
+            "priority": 6,
+            "reason": "user preferences and configuration"
+          },
+          {
+            "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+            "text": "other navigation links",
+            "destination": "other pages",
+            "priority": 4,
+            "reason": "general navigation"
+          }
+        ],
+        "nextActions": [
+          "Prioritize article and profile links for maximum content discovery",
+          "Fill any visible forms with realistic test data",
+          "Click on interactive buttons and elements",
+          "Explore navigation menus and links",
+          "Look for user-generated content areas"
+        ],
+        "estimatedValue": 7
+      },
+      "timestamp": "2025-10-02T00:37:42.447Z"
+    },
+    {
+      "id": "n_4",
+      "url": "https://demo.realworld.show/#/settings",
+      "title": "Conduit",
+      "screenshot": "/Volumes/Store/prv/rn/claud_agent/trys/out/images/page_5.png",
+      "pageType": "webpage",
+      "crawlingStrategy": "intelligent_fallback_exploration",
+      "estimatedValue": 7,
+      "interactiveElements": 3,
+      "formFields": 6,
+      "mcpAnalysis": {
+        "pageType": "webpage",
+        "crawlingStrategy": "intelligent_fallback_exploration",
+        "interactiveElements": [
+          {
+            "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+            "type": "link",
+            "text": "internal navigation links",
+            "purpose": "page navigation",
+            "priority": 6,
+            "action": "click"
+          },
+          {
+            "selector": "button:not([disabled])",
+            "type": "button",
+            "text": "interactive buttons",
+            "purpose": "user interaction",
+            "priority": 5,
+            "action": "click"
+          },
+          {
+            "selector": "input[type=\"submit\"]",
+            "type": "submit",
+            "text": "form submission",
+            "purpose": "form interaction",
+            "priority": 4,
+            "action": "click"
+          }
+        ],
+        "formFields": [
+          {
+            "selector": "input[type=\"text\"]:not([readonly])",
+            "type": "text",
+            "label": "text input",
+            "suggestedValue": "Test Input Data",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"email\"]:not([readonly])",
+            "type": "email",
+            "label": "email input",
+            "suggestedValue": "test@example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"password\"]:not([readonly])",
+            "type": "password",
+            "label": "password input",
+            "suggestedValue": "TestPassword123",
+            "required": false
+          },
+          {
+            "selector": "textarea:not([readonly])",
+            "type": "textarea",
+            "label": "text area",
+            "suggestedValue": "This is a test comment for web crawling purposes.",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"url\"]:not([readonly])",
+            "type": "url",
+            "label": "URL input",
+            "suggestedValue": "https://example.com",
+            "required": false
+          },
+          {
+            "selector": "input[type=\"number\"]:not([readonly])",
+            "type": "number",
+            "label": "number input",
+            "suggestedValue": "123",
+            "required": false
+          }
+        ],
+        "navigationPriorities": [
+          {
+            "selector": "a[href*=\"article\"]",
+            "text": "article links",
+            "destination": "article pages",
+            "priority": 9,
+            "reason": "high-value content - articles contain the most information"
+          },
+          {
+            "selector": "a[href*=\"profile\"]",
+            "text": "profile links",
+            "destination": "user profiles",
+            "priority": 8,
+            "reason": "user-generated content - profiles show user activity"
+          },
+          {
+            "selector": "a[href*=\"editor\"]",
+            "text": "editor links",
+            "destination": "content creation",
+            "priority": 7,
+            "reason": "content creation interface"
+          },
+          {
+            "selector": "a[href*=\"settings\"]",
+            "text": "settings links",
+            "destination": "user settings",
+            "priority": 6,
+            "reason": "user preferences and configuration"
+          },
+          {
+            "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+            "text": "other navigation links",
+            "destination": "other pages",
+            "priority": 4,
+            "reason": "general navigation"
+          }
+        ],
+        "nextActions": [
+          "Prioritize article and profile links for maximum content discovery",
+          "Fill any visible forms with realistic test data",
+          "Click on interactive buttons and elements",
+          "Explore navigation menus and links",
+          "Look for user-generated content areas"
+        ],
+        "estimatedValue": 7
+      },
+      "timestamp": "2025-10-02T00:37:58.904Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_0",
+      "source": "n_0",
+      "dest": "https://demo.realworld.show/#/article/how-to-learn-javascript-efficiently",
+      "action": "MCP-clicked: article links",
+      "priority": 9,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:36:34.343Z"
+    },
+    {
+      "id": "e_1",
+      "source": "n_0",
+      "dest": "https://demo.realworld.show/#/profile/testuser_1759365350533",
+      "action": "MCP-clicked: profile links",
+      "priority": 8,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:36:34.343Z"
+    },
+    {
+      "id": "e_2",
+      "source": "n_0",
+      "dest": "https://demo.realworld.show/#/editor",
+      "action": "MCP-clicked: editor links",
+      "priority": 7,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:36:34.343Z"
+    },
+    {
+      "id": "e_3",
+      "source": "n_0",
+      "dest": "https://demo.realworld.show/#/settings",
+      "action": "MCP-clicked: settings links",
+      "priority": 6,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:36:34.343Z"
+    },
+    {
+      "id": "e_4",
+      "source": "n_1",
+      "dest": "https://demo.realworld.show/#/profile/testuser_1759365350533",
+      "action": "MCP-clicked: profile links",
+      "priority": 8,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:37:09.172Z"
+    },
+    {
+      "id": "e_5",
+      "source": "n_1",
+      "dest": "https://demo.realworld.show/#/editor",
+      "action": "MCP-clicked: editor links",
+      "priority": 7,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:37:09.173Z"
+    },
+    {
+      "id": "e_6",
+      "source": "n_1",
+      "dest": "https://demo.realworld.show/#/settings",
+      "action": "MCP-clicked: settings links",
+      "priority": 6,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:37:09.173Z"
+    },
+    {
+      "id": "e_7",
+      "source": "n_2",
+      "dest": "https://demo.realworld.show/#/editor",
+      "action": "MCP-clicked: editor links",
+      "priority": 7,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:37:38.462Z"
+    },
+    {
+      "id": "e_8",
+      "source": "n_2",
+      "dest": "https://demo.realworld.show/#/settings",
+      "action": "MCP-clicked: settings links",
+      "priority": 6,
+      "mcpOptimized": true,
+      "timestamp": "2025-10-02T00:37:38.462Z"
+    }
+  ],
+  "navigationTree": {
+    "currentPage": "https://demo.realworld.show/#/settings",
+    "todoQueue": [
+      {
+        "url": "https://demo.realworld.show/#/",
+        "title": "Home Page",
+        "priority": 10,
+        "source": "initial",
+        "action": "navigate",
+        "visited": true,
+        "timestamp": "2025-10-02T00:35:59.838Z",
+        "mcpAnalysis": {
+          "pageType": "webpage",
+          "crawlingStrategy": "intelligent_fallback_exploration",
+          "interactiveElements": [
+            {
+              "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+              "type": "link",
+              "text": "internal navigation links",
+              "purpose": "page navigation",
+              "priority": 6,
+              "action": "click"
+            },
+            {
+              "selector": "button:not([disabled])",
+              "type": "button",
+              "text": "interactive buttons",
+              "purpose": "user interaction",
+              "priority": 5,
+              "action": "click"
+            },
+            {
+              "selector": "input[type=\"submit\"]",
+              "type": "submit",
+              "text": "form submission",
+              "purpose": "form interaction",
+              "priority": 4,
+              "action": "click"
+            }
+          ],
+          "formFields": [
+            {
+              "selector": "input[type=\"text\"]:not([readonly])",
+              "type": "text",
+              "label": "text input",
+              "suggestedValue": "Test Input Data",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"email\"]:not([readonly])",
+              "type": "email",
+              "label": "email input",
+              "suggestedValue": "test@example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"password\"]:not([readonly])",
+              "type": "password",
+              "label": "password input",
+              "suggestedValue": "TestPassword123",
+              "required": false
+            },
+            {
+              "selector": "textarea:not([readonly])",
+              "type": "textarea",
+              "label": "text area",
+              "suggestedValue": "This is a test comment for web crawling purposes.",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"url\"]:not([readonly])",
+              "type": "url",
+              "label": "URL input",
+              "suggestedValue": "https://example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"number\"]:not([readonly])",
+              "type": "number",
+              "label": "number input",
+              "suggestedValue": "123",
+              "required": false
+            }
+          ],
+          "navigationPriorities": [
+            {
+              "selector": "a[href*=\"article\"]",
+              "text": "article links",
+              "destination": "article pages",
+              "priority": 9,
+              "reason": "high-value content - articles contain the most information"
+            },
+            {
+              "selector": "a[href*=\"profile\"]",
+              "text": "profile links",
+              "destination": "user profiles",
+              "priority": 8,
+              "reason": "user-generated content - profiles show user activity"
+            },
+            {
+              "selector": "a[href*=\"editor\"]",
+              "text": "editor links",
+              "destination": "content creation",
+              "priority": 7,
+              "reason": "content creation interface"
+            },
+            {
+              "selector": "a[href*=\"settings\"]",
+              "text": "settings links",
+              "destination": "user settings",
+              "priority": 6,
+              "reason": "user preferences and configuration"
+            },
+            {
+              "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+              "text": "other navigation links",
+              "destination": "other pages",
+              "priority": 4,
+              "reason": "general navigation"
+            }
+          ],
+          "nextActions": [
+            "Prioritize article and profile links for maximum content discovery",
+            "Fill any visible forms with realistic test data",
+            "Click on interactive buttons and elements",
+            "Explore navigation menus and links",
+            "Look for user-generated content areas"
+          ],
+          "estimatedValue": 7
+        }
+      },
+      {
+        "url": "https://demo.realworld.show/#/article/how-to-learn-javascript-efficiently",
+        "title": "article links",
+        "priority": 9,
+        "source": "https://demo.realworld.show/#/",
+        "action": "MCP-clicked: article links",
+        "visited": true,
+        "timestamp": "2025-10-02T00:36:07.551Z",
+        "mcpAnalysis": {
+          "pageType": "webpage",
+          "crawlingStrategy": "intelligent_fallback_exploration",
+          "interactiveElements": [
+            {
+              "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+              "type": "link",
+              "text": "internal navigation links",
+              "purpose": "page navigation",
+              "priority": 6,
+              "action": "click"
+            },
+            {
+              "selector": "button:not([disabled])",
+              "type": "button",
+              "text": "interactive buttons",
+              "purpose": "user interaction",
+              "priority": 5,
+              "action": "click"
+            },
+            {
+              "selector": "input[type=\"submit\"]",
+              "type": "submit",
+              "text": "form submission",
+              "purpose": "form interaction",
+              "priority": 4,
+              "action": "click"
+            }
+          ],
+          "formFields": [
+            {
+              "selector": "input[type=\"text\"]:not([readonly])",
+              "type": "text",
+              "label": "text input",
+              "suggestedValue": "Test Input Data",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"email\"]:not([readonly])",
+              "type": "email",
+              "label": "email input",
+              "suggestedValue": "test@example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"password\"]:not([readonly])",
+              "type": "password",
+              "label": "password input",
+              "suggestedValue": "TestPassword123",
+              "required": false
+            },
+            {
+              "selector": "textarea:not([readonly])",
+              "type": "textarea",
+              "label": "text area",
+              "suggestedValue": "This is a test comment for web crawling purposes.",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"url\"]:not([readonly])",
+              "type": "url",
+              "label": "URL input",
+              "suggestedValue": "https://example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"number\"]:not([readonly])",
+              "type": "number",
+              "label": "number input",
+              "suggestedValue": "123",
+              "required": false
+            }
+          ],
+          "navigationPriorities": [
+            {
+              "selector": "a[href*=\"article\"]",
+              "text": "article links",
+              "destination": "article pages",
+              "priority": 9,
+              "reason": "high-value content - articles contain the most information"
+            },
+            {
+              "selector": "a[href*=\"profile\"]",
+              "text": "profile links",
+              "destination": "user profiles",
+              "priority": 8,
+              "reason": "user-generated content - profiles show user activity"
+            },
+            {
+              "selector": "a[href*=\"editor\"]",
+              "text": "editor links",
+              "destination": "content creation",
+              "priority": 7,
+              "reason": "content creation interface"
+            },
+            {
+              "selector": "a[href*=\"settings\"]",
+              "text": "settings links",
+              "destination": "user settings",
+              "priority": 6,
+              "reason": "user preferences and configuration"
+            },
+            {
+              "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+              "text": "other navigation links",
+              "destination": "other pages",
+              "priority": 4,
+              "reason": "general navigation"
+            }
+          ],
+          "nextActions": [
+            "Prioritize article and profile links for maximum content discovery",
+            "Fill any visible forms with realistic test data",
+            "Click on interactive buttons and elements",
+            "Explore navigation menus and links",
+            "Look for user-generated content areas"
+          ],
+          "estimatedValue": 7
+        }
+      },
+      {
+        "url": "https://demo.realworld.show/#/profile/testuser_1759365350533",
+        "title": "profile links",
+        "priority": 8,
+        "source": "https://demo.realworld.show/#/",
+        "action": "MCP-clicked: profile links",
+        "visited": true,
+        "timestamp": "2025-10-02T00:36:12.701Z",
+        "mcpAnalysis": {
+          "pageType": "webpage",
+          "crawlingStrategy": "intelligent_fallback_exploration",
+          "interactiveElements": [
+            {
+              "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+              "type": "link",
+              "text": "internal navigation links",
+              "purpose": "page navigation",
+              "priority": 6,
+              "action": "click"
+            },
+            {
+              "selector": "button:not([disabled])",
+              "type": "button",
+              "text": "interactive buttons",
+              "purpose": "user interaction",
+              "priority": 5,
+              "action": "click"
+            },
+            {
+              "selector": "input[type=\"submit\"]",
+              "type": "submit",
+              "text": "form submission",
+              "purpose": "form interaction",
+              "priority": 4,
+              "action": "click"
+            }
+          ],
+          "formFields": [
+            {
+              "selector": "input[type=\"text\"]:not([readonly])",
+              "type": "text",
+              "label": "text input",
+              "suggestedValue": "Test Input Data",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"email\"]:not([readonly])",
+              "type": "email",
+              "label": "email input",
+              "suggestedValue": "test@example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"password\"]:not([readonly])",
+              "type": "password",
+              "label": "password input",
+              "suggestedValue": "TestPassword123",
+              "required": false
+            },
+            {
+              "selector": "textarea:not([readonly])",
+              "type": "textarea",
+              "label": "text area",
+              "suggestedValue": "This is a test comment for web crawling purposes.",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"url\"]:not([readonly])",
+              "type": "url",
+              "label": "URL input",
+              "suggestedValue": "https://example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"number\"]:not([readonly])",
+              "type": "number",
+              "label": "number input",
+              "suggestedValue": "123",
+              "required": false
+            }
+          ],
+          "navigationPriorities": [
+            {
+              "selector": "a[href*=\"article\"]",
+              "text": "article links",
+              "destination": "article pages",
+              "priority": 9,
+              "reason": "high-value content - articles contain the most information"
+            },
+            {
+              "selector": "a[href*=\"profile\"]",
+              "text": "profile links",
+              "destination": "user profiles",
+              "priority": 8,
+              "reason": "user-generated content - profiles show user activity"
+            },
+            {
+              "selector": "a[href*=\"editor\"]",
+              "text": "editor links",
+              "destination": "content creation",
+              "priority": 7,
+              "reason": "content creation interface"
+            },
+            {
+              "selector": "a[href*=\"settings\"]",
+              "text": "settings links",
+              "destination": "user settings",
+              "priority": 6,
+              "reason": "user preferences and configuration"
+            },
+            {
+              "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+              "text": "other navigation links",
+              "destination": "other pages",
+              "priority": 4,
+              "reason": "general navigation"
+            }
+          ],
+          "nextActions": [
+            "Prioritize article and profile links for maximum content discovery",
+            "Fill any visible forms with realistic test data",
+            "Click on interactive buttons and elements",
+            "Explore navigation menus and links",
+            "Look for user-generated content areas"
+          ],
+          "estimatedValue": 7
+        }
+      },
+      {
+        "url": "https://demo.realworld.show/#/editor",
+        "title": "editor links",
+        "priority": 7,
+        "source": "https://demo.realworld.show/#/",
+        "action": "MCP-clicked: editor links",
+        "visited": true,
+        "timestamp": "2025-10-02T00:36:17.848Z",
+        "mcpAnalysis": {
+          "pageType": "webpage",
+          "crawlingStrategy": "intelligent_fallback_exploration",
+          "interactiveElements": [
+            {
+              "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+              "type": "link",
+              "text": "internal navigation links",
+              "purpose": "page navigation",
+              "priority": 6,
+              "action": "click"
+            },
+            {
+              "selector": "button:not([disabled])",
+              "type": "button",
+              "text": "interactive buttons",
+              "purpose": "user interaction",
+              "priority": 5,
+              "action": "click"
+            },
+            {
+              "selector": "input[type=\"submit\"]",
+              "type": "submit",
+              "text": "form submission",
+              "purpose": "form interaction",
+              "priority": 4,
+              "action": "click"
+            }
+          ],
+          "formFields": [
+            {
+              "selector": "input[type=\"text\"]:not([readonly])",
+              "type": "text",
+              "label": "text input",
+              "suggestedValue": "Test Input Data",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"email\"]:not([readonly])",
+              "type": "email",
+              "label": "email input",
+              "suggestedValue": "test@example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"password\"]:not([readonly])",
+              "type": "password",
+              "label": "password input",
+              "suggestedValue": "TestPassword123",
+              "required": false
+            },
+            {
+              "selector": "textarea:not([readonly])",
+              "type": "textarea",
+              "label": "text area",
+              "suggestedValue": "This is a test comment for web crawling purposes.",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"url\"]:not([readonly])",
+              "type": "url",
+              "label": "URL input",
+              "suggestedValue": "https://example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"number\"]:not([readonly])",
+              "type": "number",
+              "label": "number input",
+              "suggestedValue": "123",
+              "required": false
+            }
+          ],
+          "navigationPriorities": [
+            {
+              "selector": "a[href*=\"article\"]",
+              "text": "article links",
+              "destination": "article pages",
+              "priority": 9,
+              "reason": "high-value content - articles contain the most information"
+            },
+            {
+              "selector": "a[href*=\"profile\"]",
+              "text": "profile links",
+              "destination": "user profiles",
+              "priority": 8,
+              "reason": "user-generated content - profiles show user activity"
+            },
+            {
+              "selector": "a[href*=\"editor\"]",
+              "text": "editor links",
+              "destination": "content creation",
+              "priority": 7,
+              "reason": "content creation interface"
+            },
+            {
+              "selector": "a[href*=\"settings\"]",
+              "text": "settings links",
+              "destination": "user settings",
+              "priority": 6,
+              "reason": "user preferences and configuration"
+            },
+            {
+              "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+              "text": "other navigation links",
+              "destination": "other pages",
+              "priority": 4,
+              "reason": "general navigation"
+            }
+          ],
+          "nextActions": [
+            "Prioritize article and profile links for maximum content discovery",
+            "Fill any visible forms with realistic test data",
+            "Click on interactive buttons and elements",
+            "Explore navigation menus and links",
+            "Look for user-generated content areas"
+          ],
+          "estimatedValue": 7
+        }
+      },
+      {
+        "url": "https://demo.realworld.show/#/settings",
+        "title": "settings links",
+        "priority": 6,
+        "source": "https://demo.realworld.show/#/",
+        "action": "MCP-clicked: settings links",
+        "visited": true,
+        "timestamp": "2025-10-02T00:36:22.996Z",
+        "mcpAnalysis": {
+          "pageType": "webpage",
+          "crawlingStrategy": "intelligent_fallback_exploration",
+          "interactiveElements": [
+            {
+              "selector": "a[href]:not([href^=\"http\"]):not([href^=\"#\"])",
+              "type": "link",
+              "text": "internal navigation links",
+              "purpose": "page navigation",
+              "priority": 6,
+              "action": "click"
+            },
+            {
+              "selector": "button:not([disabled])",
+              "type": "button",
+              "text": "interactive buttons",
+              "purpose": "user interaction",
+              "priority": 5,
+              "action": "click"
+            },
+            {
+              "selector": "input[type=\"submit\"]",
+              "type": "submit",
+              "text": "form submission",
+              "purpose": "form interaction",
+              "priority": 4,
+              "action": "click"
+            }
+          ],
+          "formFields": [
+            {
+              "selector": "input[type=\"text\"]:not([readonly])",
+              "type": "text",
+              "label": "text input",
+              "suggestedValue": "Test Input Data",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"email\"]:not([readonly])",
+              "type": "email",
+              "label": "email input",
+              "suggestedValue": "test@example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"password\"]:not([readonly])",
+              "type": "password",
+              "label": "password input",
+              "suggestedValue": "TestPassword123",
+              "required": false
+            },
+            {
+              "selector": "textarea:not([readonly])",
+              "type": "textarea",
+              "label": "text area",
+              "suggestedValue": "This is a test comment for web crawling purposes.",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"url\"]:not([readonly])",
+              "type": "url",
+              "label": "URL input",
+              "suggestedValue": "https://example.com",
+              "required": false
+            },
+            {
+              "selector": "input[type=\"number\"]:not([readonly])",
+              "type": "number",
+              "label": "number input",
+              "suggestedValue": "123",
+              "required": false
+            }
+          ],
+          "navigationPriorities": [
+            {
+              "selector": "a[href*=\"article\"]",
+              "text": "article links",
+              "destination": "article pages",
+              "priority": 9,
+              "reason": "high-value content - articles contain the most information"
+            },
+            {
+              "selector": "a[href*=\"profile\"]",
+              "text": "profile links",
+              "destination": "user profiles",
+              "priority": 8,
+              "reason": "user-generated content - profiles show user activity"
+            },
+            {
+              "selector": "a[href*=\"editor\"]",
+              "text": "editor links",
+              "destination": "content creation",
+              "priority": 7,
+              "reason": "content creation interface"
+            },
+            {
+              "selector": "a[href*=\"settings\"]",
+              "text": "settings links",
+              "destination": "user settings",
+              "priority": 6,
+              "reason": "user preferences and configuration"
+            },
+            {
+              "selector": "a[href]:not([href*=\"article\"]):not([href*=\"profile\"]):not([href*=\"editor\"]):not([href*=\"settings\"])",
+              "text": "other navigation links",
+              "destination": "other pages",
+              "priority": 4,
+              "reason": "general navigation"
+            }
+          ],
+          "nextActions": [
+            "Prioritize article and profile links for maximum content discovery",
+            "Fill any visible forms with realistic test data",
+            "Click on interactive buttons and elements",
+            "Explore navigation menus and links",
+            "Look for user-generated content areas"
+          ],
+          "estimatedValue": 7
+        }
+      }
+    ],
+    "visitedUrls": [
+      "https://demo.realworld.show/#/",
+      "https://demo.realworld.show/#/article/how-to-learn-javascript-efficiently",
+      "https://demo.realworld.show/#/profile/testuser_1759365350533",
+      "https://demo.realworld.show/#/editor",
+      "https://demo.realworld.show/#/settings"
+    ],
+    "navigationPath": [
+      "https://demo.realworld.show/#/",
+      "https://demo.realworld.show/#/article/how-to-learn-javascript-efficiently",
+      "https://demo.realworld.show/#/profile/testuser_1759365350533",
+      "https://demo.realworld.show/#/editor",
+      "https://demo.realworld.show/#/settings"
+    ],
+    "mcpContext": {
+      "crawlingStrategy": "intelligent_exploration",
+      "optimizationLevel": "high",
+      "aiPowered": true
+    }
+  }
+}
