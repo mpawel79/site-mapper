@@ -169,8 +169,23 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
         }, 3000);
       });
       
-      // Take screenshot
-      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${pageCount + 1}.png`);
+      // Take screenshot with timestamp
+      const timestamp = Date.now();
+      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${timestamp}_page_${pageCount + 1}.png`);
+      
+      // Add initial page visit step
+      addCrawlStep(
+        crawlState,
+        'page_visit',
+        todoItem.url,
+        await page.title(),
+        screenshot,
+        `Visited page: ${todoItem.title}`,
+        undefined,
+        false,
+        undefined,
+        undefined
+      );
       
       // MCP Agent Analysis
       console.log('🤖 MCP Agent analyzing page...');
@@ -203,7 +218,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       
       // Execute MCP-suggested actions and gather new TODO items
       console.log('🎯 Executing MCP-suggested actions...');
-      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir);
+      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir, crawlState);
       
       // Add new TODO items to queue
       for (const newItem of newTodoItems) {
@@ -251,17 +266,18 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       // Save progress periodically
       if (pageCount % 5 === 0) {
         const progress = {
-          metadata: { 
-            seed, 
-            profile, 
+          metadata: {
+            seed,
+            profile,
             ts: new Date().toISOString(),
             mcpPowered: true,
             geminiApiKey: geminiApiKey.substring(0, 10) + '...',
             pagesDiscovered: pageCount,
             todoQueueSize: navigationTree.todoQueue.length,
-            visitedUrls: navigationTree.visitedUrls.size
-          }, 
-          nodes, 
+            visitedUrls: navigationTree.visitedUrls.size,
+            totalSteps: crawlState.stepCounter
+          },
+          nodes,
           edges,
           navigationTree: {
             currentPage: navigationTree.currentPage,
@@ -269,10 +285,15 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
             visitedUrls: Array.from(navigationTree.visitedUrls),
             navigationPath: navigationTree.navigationPath,
             mcpContext: navigationTree.mcpContext
+          },
+          crawlState: {
+            steps: crawlState.steps,
+            currentStepId: crawlState.currentStepId,
+            stepCounter: crawlState.stepCounter
           }
         };
         fs.writeFileSync(path.join(outDir, 'map.json'), JSON.stringify(progress, null, 2));
-        console.log(`💾 MCP Progress saved: ${pageCount} pages discovered`);
+        console.log(`💾 MCP Progress saved: ${pageCount} pages discovered, ${crawlState.stepCounter} steps recorded`);
       }
       
     } catch (error) {
@@ -291,7 +312,8 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       geminiApiKey: geminiApiKey.substring(0, 10) + '...',
       totalPages: pageCount,
       visitedUrls: navigationTree.visitedUrls.size,
-      todoQueueSize: navigationTree.todoQueue.length
+      todoQueueSize: navigationTree.todoQueue.length,
+      totalSteps: crawlState.stepCounter
     }, 
     nodes, 
     edges,
@@ -301,6 +323,11 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       visitedUrls: Array.from(navigationTree.visitedUrls),
       navigationPath: navigationTree.navigationPath,
       mcpContext: navigationTree.mcpContext
+    },
+    crawlState: {
+      steps: crawlState.steps,
+      currentStepId: crawlState.currentStepId,
+      stepCounter: crawlState.stepCounter
     }
   };
   
@@ -365,7 +392,7 @@ function addCrawlStep(
 }
 
 // Helper function to execute MCP-suggested actions
-async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string): Promise<TodoItem[]> {
+async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState): Promise<TodoItem[]> {
   const newTodoItems: TodoItem[] = [];
   
   // Enhanced form filling with 2 items and submission
@@ -373,8 +400,23 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     console.log(`📝 MCP Agent found ${mcpAnalysis.formFields.length} form fields to fill`);
     
     // Take screenshot BEFORE form filling
-    const beforeFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_before_fill_${Date.now()}.png`);
+    const beforeFillTimestamp = Date.now();
+    const beforeFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${beforeFillTimestamp}_form_before_fill.png`);
     console.log(`📸 Screenshot taken BEFORE form filling: ${beforeFillScreenshot}`);
+    
+    // Add step for form filling start
+    addCrawlStep(
+      crawlState,
+      'form_fill_start',
+      currentUrl,
+      await page.title(),
+      beforeFillScreenshot,
+      `Starting to fill ${mcpAnalysis.formFields.length} form fields`,
+      mcpAnalysis.formFields,
+      false,
+      undefined,
+      mcpAnalysis
+    );
     
     // Fill forms with MCP-suggested dummy data
     for (const field of mcpAnalysis.formFields) {
@@ -383,15 +425,64 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
         if (element && await element.isVisible()) {
           await element.fill(field.suggestedValue);
           console.log(`📝 MCP filled ${field.label} with: ${field.suggestedValue}`);
+          
+          // Take screenshot after each field is filled
+          const fieldTimestamp = Date.now();
+          const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${fieldTimestamp}_form_field_filled_${field.label.replace(/\s+/g, '_')}.png`);
+          
+          addCrawlStep(
+            crawlState,
+            'form_field_filled',
+            currentUrl,
+            await page.title(),
+            fieldScreenshot,
+            `Filled field: ${field.label} with: ${field.suggestedValue}`,
+            [field],
+            false,
+            undefined,
+            mcpAnalysis
+          );
         }
       } catch (error) {
         console.log(`❌ Could not fill field ${field.selector}: ${error}`);
+        
+        // Take screenshot of error state
+        const errorTimestamp = Date.now();
+        const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${field.label.replace(/\s+/g, '_')}.png`);
+        
+        addCrawlStep(
+          crawlState,
+          'form_field_error',
+          currentUrl,
+          await page.title(),
+          errorScreenshot,
+          `Error filling field: ${field.label} - ${error}`,
+          [field],
+          false,
+          undefined,
+          mcpAnalysis
+        );
       }
     }
     
     // Take screenshot AFTER all fields are filled
-    const afterFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_after_fill_${Date.now()}.png`);
+    const afterFillTimestamp = Date.now();
+    const afterFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterFillTimestamp}_form_after_fill.png`);
     console.log(`📸 Screenshot taken AFTER form filling: ${afterFillScreenshot}`);
+    
+    // Add step for form filling completion
+    addCrawlStep(
+      crawlState,
+      'form_fill_complete',
+      currentUrl,
+      await page.title(),
+      afterFillScreenshot,
+      `Completed filling ${mcpAnalysis.formFields.length} form fields`,
+      mcpAnalysis.formFields,
+      false,
+      undefined,
+      mcpAnalysis
+    );
     
     // Look for submit buttons and submit forms
     const submitButtons = await page.$$('button[type="submit"], input[type="submit"], button:has-text("Submit"), button:has-text("Post"), button:has-text("Create"), button:has-text("Save")');
@@ -416,8 +507,23 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
             await page.waitForTimeout(3000); // Wait for submission
             
             // Take screenshot AFTER form submission
-            const afterSubmitScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_after_submit_${i + 1}_${Date.now()}.png`);
+            const afterSubmitTimestamp = Date.now();
+            const afterSubmitScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterSubmitTimestamp}_form_after_submit_${i + 1}.png`);
             console.log(`📸 Screenshot taken AFTER form ${i + 1} submission: ${afterSubmitScreenshot}`);
+            
+            // Add step for form submission
+            addCrawlStep(
+              crawlState,
+              'form_submit',
+              currentUrl,
+              await page.title(),
+              afterSubmitScreenshot,
+              `Submitted form ${i + 1}/2`,
+              mcpAnalysis.formFields,
+              true,
+              undefined,
+              mcpAnalysis
+            );
             
             // Check if we navigated to a new page
             const newUrl = page.url();
