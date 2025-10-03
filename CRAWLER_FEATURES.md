@@ -5,8 +5,11 @@ This is a sophisticated web crawling agent that combines Playwright automation w
 
 ## 🚀 Key Features
 
-### 1. **AI-Powered Page Analysis**
+### 1. **AI-Powered Page Analysis with API Testing**
 - **Google Gemini Integration**: Uses Gemini API for intelligent page analysis
+- **Pre-Crawl API Validation**: Tests API connection before starting crawl
+- **Multi-Model Testing**: Tests primary model and fallback models systematically
+- **API Status Reporting**: Clear feedback on which models work/fail
 - **Fallback Analysis**: Robust fallback when AI is unavailable
 - **Smart Element Detection**: Identifies interactive elements, forms, and navigation options
 - **Priority-Based Exploration**: Ranks pages and actions by importance
@@ -26,6 +29,12 @@ This is a sophisticated web crawling agent that combines Playwright automation w
 - **Natural Language Parsing**: Extracts test data from "then" clauses using regex patterns
 - **Fallback System**: Type-based defaults when no scenario matches
 - **Multi-Field Form Filling**: Automatically fills text, email, password, textarea, URL, number, date, and time fields
+- **Enhanced Submit Button Detection**: Comprehensive submit button detection with multiple methods:
+  - **Explicit Submit Buttons**: `button[type="submit"]`, `input[type="submit"]`
+  - **Text-Based Detection**: Buttons containing "Submit", "Post", "Create", "Save", "Send", "Update", "Add", "Register", "Login", "Sign up", "Sign in", "Publish"
+  - **Data Attribute Detection**: `[data-testid*="submit"]`, `[data-testid*="save"]`, `[data-testid*="create"]`, `[data-testid*="publish"]`
+  - **Last Button Fallback**: Uses last button in form when no explicit submit found
+- **Form Context Analysis**: Analyzes each form individually for better accuracy
 - **Form Submission**: Submits up to 2 forms per page with visual feedback
 - **Error Handling**: Captures screenshots when form filling fails
 
@@ -63,6 +72,15 @@ This is a sophisticated web crawling agent that combines Playwright automation w
 - **Element Highlighting**: Interactive elements highlighted before clicking
 - **Progress Indicators**: Visual indicators showing agent activity
 - **Slow Motion**: Configurable delays for better observation
+
+### 8. **API Connection Testing**
+- **Pre-Crawl Validation**: Tests Gemini API connection before starting
+- **Multi-Model Testing**: Tests primary and fallback models systematically
+- **Simple Test Prompts**: Uses basic test to verify API functionality
+- **Detailed Status Reporting**: Shows which models work and which fail
+- **Graceful Degradation**: Continues with fallback analysis when API unavailable
+- **Troubleshooting Tips**: Provides helpful configuration advice
+- **Working Model Detection**: Reports which model is functional
 
 ## 🏗️ Architecture
 
@@ -165,7 +183,8 @@ interface NavigationTree {
 - `form_fill_start` - Beginning of form filling
 - `form_field_filled` - Individual field completion with intelligent data
 - `form_fill_complete` - All fields completed
-- `form_submit` - Form submission
+- `form_submit` - Form submission with enhanced button detection
+- `form_field_error` - Error filling individual field
 - `logout_attempt` - Logout button click attempt
 - `logout_success` - Successful logout
 - `logout_failed` - Logout button not accessible
@@ -186,6 +205,12 @@ interface NavigationTree {
       "given": "you are on article creation page",
       "when": "content needs to be created",
       "then": "provide title: Test Article Title, content: This is test content for web crawling purposes and submit"
+    },
+    {
+      "situation_name": "form submission detection",
+      "given": "you are on any page with forms",
+      "when": "forms need to be submitted",
+      "then": "look for submit buttons by: 1) explicit submit buttons (type='submit', text='Submit/Post/Create/Save/Publish'), 2) last button in form if no explicit submit found, 3) buttons with submit-related text or data attributes"
     }
   ]
 }
@@ -197,6 +222,16 @@ interface NavigationTree {
 - **URL Field**: `"Filled field: text input (URL of profile picture) with: https://example.com"`
 - **Email Field**: `"Filled field: email input (Email) with: test@example.com"`
 - **Password Field**: `"Filled field: password input (New Password) with: TestPassword123!"`
+
+### **Enhanced Submit Button Detection**
+- **Explicit Submit Buttons**: `button[type="submit"]`, `input[type="submit"]`
+- **Text-Based Detection**: Buttons containing "Submit", "Post", "Create", "Save", "Send", "Update", "Add", "Register", "Login", "Sign up", "Sign in", "Publish"
+- **Data Attribute Detection**: `[data-testid*="submit"]`, `[data-testid*="save"]`, `[data-testid*="create"]`, `[data-testid*="publish"]`
+- **Last Button Fallback**: Uses last button in form when no explicit submit found
+- **Form Context Analysis**: Analyzes each form individually for better accuracy
+- **Button Classification**: Categorizes buttons as `explicit_submit` or `last_button_in_form`
+- **Visibility Checking**: Only processes visible and enabled buttons
+- **Smart Selector Generation**: Creates reliable selectors for button targeting
 
 ## 🔧 Configuration
 
@@ -236,6 +271,13 @@ npm run start:slow
 - **Screenshots Captured**: 1-3 per step
 - **Form Interactions**: 2-6 forms per page
 - **Navigation Links**: 3-10 per page
+
+### **API Testing Results**
+- **Pre-Crawl Validation**: Tests API connection before starting
+- **Model Testing**: Tests primary model (gemini-pro) and fallback models (gemini-1.5-flash, gemini-1.5-pro)
+- **Status Reporting**: Clear feedback on which models work/fail
+- **Graceful Degradation**: Continues with fallback analysis when API unavailable
+- **Troubleshooting**: Provides helpful configuration advice
 
 ### **Step Breakdown Example**
 - Page visits: 5 steps
@@ -289,14 +331,18 @@ npm run start:slow
 1. **Complete Documentation**: Every interaction captured with screenshots
 2. **Reproducible Results**: Step-by-step replay capability
 3. **Visual Verification**: Headed mode for human observation
-4. **Intelligent Exploration**: AI-powered page analysis
+4. **Intelligent Exploration**: AI-powered page analysis with API testing
 5. **Smart Form Filling**: Context-aware data generation based on field purpose
-6. **Comprehensive Coverage**: Forms, navigation, and logout handling
-7. **Error Resilience**: Continues despite failures
-8. **State Tracking**: Complete interaction timeline with intelligent context
-9. **Professional Output**: Structured JSON with linked steps and smart data
-10. **Context-Aware Intelligence**: Understands field purpose and generates appropriate data using scenario-based matching
-11. **Agent Suggestions**: Configurable Given-When-Then scenarios for different page types and interactions
+6. **Enhanced Submit Detection**: Comprehensive submit button detection with multiple methods
+7. **Comprehensive Coverage**: Forms, navigation, and logout handling
+8. **Error Resilience**: Continues despite failures
+9. **State Tracking**: Complete interaction timeline with intelligent context
+10. **Professional Output**: Structured JSON with linked steps and smart data
+11. **Context-Aware Intelligence**: Understands field purpose and generates appropriate data using scenario-based matching
+12. **Agent Suggestions**: Configurable Given-When-Then scenarios for different page types and interactions
+13. **API Validation**: Pre-crawl API testing with fallback model support
+14. **Form Context Analysis**: Individual form analysis for better submit button detection
+15. **Last Button Fallback**: Handles cases where submit buttons are the last element in forms
 
 ## 🔮 Future Enhancements
 
