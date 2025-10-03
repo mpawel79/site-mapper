@@ -21,6 +21,26 @@
     "headless": false,
     "devtools": false,
     "slowMo": 1000,
+    "browserType": "chromium",
+    "viewport": {
+      "width": 1920,
+      "height": 1080,
+      "deviceScaleFactor": 1
+    },
+    "device": null,
+    "userAgent": null,
+    "locale": "en-US",
+    "timezone": "UTC",
+    "geolocation": null,
+    "permissions": [],
+    "deviceExamples": {
+      "iPhone 12": "iPhone 12",
+      "iPad Pro": "iPad Pro",
+      "Galaxy S21": "Galaxy S21",
+      "Desktop": null,
+      "Mobile": "iPhone 12",
+      "Tablet": "iPad Pro"
+    },
     "args": [
       "--start-maximized",
       "--no-sandbox",
@@ -115,5 +135,16 @@
     "navigationHighlightBackground": "rgba(255, 87, 34, 0.2)",
     "interactionHighlightColor": "#2196F3",
     "interactionHighlightBackground": "rgba(33, 150, 243, 0.2)"
+  },
+  "errorHandling": {
+    "showRedBordersOnErrors": true,
+    "continueDespiteErrors": true,
+    "errorBorderColor": "#F44336",
+    "errorBorderWidth": "3px",
+    "errorBackgroundColor": "rgba(244, 67, 54, 0.2)",
+    "errorScreenshotOnFailure": true,
+    "errorLogging": true,
+    "maxRetriesOnError": 3,
+    "errorDelay": 1000
   }
 }

@@ -48,7 +48,7 @@ interface CrawlState {
 
 export async function runMCPSmartCrawl(seed: string, profile: any, outDir: string, geminiApiKey: string, config: any) {
   const browser = await launchBrowser(config);
-  const page = await newPage(browser);
+  const page = await newPage(browser, config);
   fs.ensureDirSync(outDir);
   fs.ensureDirSync(path.join(outDir, 'images'));
   
@@ -318,10 +318,45 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
         console.log(`💾 MCP Progress saved: ${pageCount} pages discovered, ${crawlState.stepCounter} steps recorded`);
       }
       
-    } catch (error) {
-      console.error(`❌ Error exploring ${todoItem.url}:`, error);
-      // Continue with next item
-    }
+        } catch (error) {
+          console.error(`❌ Error exploring ${todoItem.url}:`, error);
+          
+          // Log error if configured
+          if (config.errorHandling.errorLogging) {
+            console.log(`📝 Error details: ${(error as any).message || error}`);
+          }
+          
+          // Take error screenshot if configured
+          if (config.errorHandling.errorScreenshotOnFailure) {
+            try {
+              const errorTimestamp = Date.now();
+              const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_page_error_${pageCount + 1}.png`);
+              
+              addCrawlStep(
+                crawlState,
+                'page_error',
+                todoItem.url,
+                await page.title(),
+                errorScreenshot,
+                `Error exploring page: ${(error as any).message || error}`,
+                undefined,
+                false,
+                undefined,
+                undefined
+              );
+            } catch (screenshotError) {
+              console.log(`⚠️ Could not take error screenshot: ${screenshotError}`);
+            }
+          }
+          
+          // Continue with next item if configured
+          if (config.errorHandling.continueDespiteErrors) {
+            console.log(`🔄 Continuing despite error (continueDespiteErrors: true)`);
+          } else {
+            console.log(`🛑 Stopping due to error (continueDespiteErrors: false)`);
+            break;
+          }
+        }
   }
   
   // Handle logout as final step
@@ -762,26 +797,54 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
       } else {
         console.log(`⚠️ Field not found: ${input.selector} (${input.label})`);
       }
-    } catch (error) {
-      console.log(`❌ Could not fill field ${input.selector}: ${error}`);
-      
-      // Take screenshot of error state
-      const errorTimestamp = Date.now();
-      const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${input.label.replace(/\s+/g, '_')}.png`);
-      
-      addCrawlStep(
-        crawlState,
-        'form_field_error',
-        currentUrl,
-        await page.title(),
-        errorScreenshot,
-        `Error filling field: ${input.label} - ${error}`,
-        [input],
-        false,
-        undefined,
-        undefined
-      );
-    }
+        } catch (error) {
+          console.log(`❌ Could not fill field ${input.selector}: ${error}`);
+
+          // Apply error visual indicators if configured
+          if (config.errorHandling.showRedBordersOnErrors) {
+            try {
+              const element = await page.$(input.selector);
+              if (element) {
+                await element.evaluate((el: any, errorConfig: any) => {
+                el.style.border = `${errorConfig.errorBorderWidth} solid ${errorConfig.errorBorderColor}`;
+                el.style.backgroundColor = errorConfig.errorBackgroundColor;
+                el.style.transition = 'all 0.3s ease';
+                }, {
+                  errorBorderWidth: config.errorHandling.errorBorderWidth,
+                  errorBorderColor: config.errorHandling.errorBorderColor,
+                  errorBackgroundColor: config.errorHandling.errorBackgroundColor
+                });
+              }
+            } catch (visualError) {
+              console.log(`⚠️ Could not apply error visual indicators: ${visualError}`);
+            }
+          }
+
+          // Take screenshot of error state if configured
+          let errorScreenshot = '';
+          if (config.errorHandling.errorScreenshotOnFailure) {
+            const errorTimestamp = Date.now();
+            errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${input.label.replace(/\s+/g, '_')}.png`);
+          }
+
+          addCrawlStep(
+            crawlState,
+            'form_field_error',
+            currentUrl,
+            await page.title(),
+            errorScreenshot,
+            `Error filling field: ${input.label} - ${error}`,
+            [input],
+            false,
+            undefined,
+            undefined
+          );
+
+          // Add delay if configured
+          if (config.errorHandling.errorDelay > 0) {
+            await page.waitForTimeout(config.errorHandling.errorDelay);
+          }
+        }
   }
 }
 
@@ -988,9 +1051,57 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
               }
             }
           }
-        } catch (error) {
-          console.log(`❌ Could not submit form ${i + 1}: ${error}`);
-        }
+            } catch (error) {
+              console.log(`❌ Could not submit form ${i + 1}: ${error}`);
+              
+              // Apply error visual indicators if configured
+              if (config.errorHandling.showRedBordersOnErrors) {
+                try {
+                  const submitButton = await page.$(submitButtons[i].selector);
+                  if (submitButton) {
+                    await submitButton.evaluate((el: any, errorConfig: any) => {
+                    el.style.border = `${errorConfig.errorBorderWidth} solid ${errorConfig.errorBorderColor}`;
+                    el.style.backgroundColor = errorConfig.errorBackgroundColor;
+                    el.style.transition = 'all 0.3s ease';
+                    }, {
+                      errorBorderWidth: config.errorHandling.errorBorderWidth,
+                      errorBorderColor: config.errorHandling.errorBorderColor,
+                      errorBackgroundColor: config.errorHandling.errorBackgroundColor
+                    });
+                  }
+                } catch (visualError) {
+                  console.log(`⚠️ Could not apply error visual indicators: ${visualError}`);
+                }
+              }
+              
+              // Take error screenshot if configured
+              if (config.errorHandling.errorScreenshotOnFailure) {
+                try {
+                  const errorTimestamp = Date.now();
+                  const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_submit_error_${i + 1}.png`);
+                  
+                  addCrawlStep(
+                    crawlState,
+                    'form_submit_error',
+                    currentUrl,
+                    await page.title(),
+                    errorScreenshot,
+                    `Error submitting form ${i + 1}: ${error}`,
+                    allFormInputs,
+                    false,
+                    undefined,
+                    mcpAnalysis
+                  );
+                } catch (screenshotError) {
+                  console.log(`⚠️ Could not take error screenshot: ${screenshotError}`);
+                }
+              }
+              
+              // Add delay if configured
+              if (config.errorHandling.errorDelay > 0) {
+                await page.waitForTimeout(config.errorHandling.errorDelay);
+              }
+            }
       }
     } else {
       console.log(`📝 No submit buttons found, forms filled but not submitted`);
