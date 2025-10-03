@@ -621,6 +621,170 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
   }
 }
 
+// Enhanced form detection function
+async function detectAllFormInputs(page: any): Promise<any[]> {
+  console.log('🔍 Detecting all form inputs on page...');
+  
+  const formInputs = await page.evaluate(() => {
+    const inputs: any[] = [];
+    
+    // Get all input elements
+    const inputElements = document.querySelectorAll('input, textarea, select');
+    
+    inputElements.forEach((element: any, index: number) => {
+      // Skip hidden, disabled, or readonly inputs
+      if (element.type === 'hidden' || 
+          element.disabled || 
+          element.readOnly ||
+          element.style.display === 'none' ||
+          element.offsetParent === null) {
+        return;
+      }
+      
+      // Get element details
+      const tagName = element.tagName.toLowerCase();
+      const type = element.type || 'text';
+      const name = element.name || '';
+      const id = element.id || '';
+      const placeholder = element.placeholder || '';
+      const label = element.getAttribute('aria-label') || '';
+      
+      // Try to find associated label
+      let labelText = '';
+      if (id) {
+        const labelElement = document.querySelector(`label[for="${id}"]`);
+        if (labelElement) {
+          labelText = labelElement.textContent?.trim() || '';
+        }
+      }
+      
+      // If no label found, look for nearby text
+      if (!labelText) {
+        const parent = element.closest('div, fieldset, form');
+        if (parent) {
+          const textNodes = Array.from(parent.childNodes)
+            .filter((node: any) => node.nodeType === Node.TEXT_NODE)
+            .map((node: any) => node.textContent?.trim())
+            .filter((text: any) => text && text.length > 0);
+          if (textNodes.length > 0) {
+            labelText = textNodes[0];
+          }
+        }
+      }
+      
+      // Generate selector
+      let selector = '';
+      if (id) {
+        selector = `#${id}`;
+      } else if (name) {
+        selector = `[name="${name}"]`;
+      } else if (placeholder) {
+        selector = `${tagName}[placeholder="${placeholder}"]`;
+      } else {
+        // Use a more specific selector
+        const allElements = document.querySelectorAll(`${tagName}[type="${type}"]`);
+        const elementIndex = Array.from(allElements).indexOf(element);
+        if (elementIndex >= 0) {
+          selector = `${tagName}[type="${type}"]:nth-of-type(${elementIndex + 1})`;
+        } else {
+          selector = `${tagName}:nth-of-type(${index + 1})`;
+        }
+      }
+      
+      inputs.push({
+        selector,
+        tagName,
+        type,
+        name,
+        id,
+        placeholder,
+        label: labelText || label || placeholder || name || id || `${tagName} input`,
+        required: element.required || element.hasAttribute('required'),
+        visible: element.offsetParent !== null,
+        index
+      });
+    });
+    
+    return inputs;
+  });
+  
+  console.log(`📝 Found ${formInputs.length} form inputs:`, formInputs.map((f: any) => `${f.type} (${f.label})`));
+  return formInputs;
+}
+
+// Enhanced form filling function
+async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: string, outDir: string, crawlState: CrawlState, config: any): Promise<void> {
+  console.log(`📝 Filling ${formInputs.length} form inputs...`);
+  
+  for (const input of formInputs) {
+    try {
+      const element = await page.$(input.selector);
+      if (element) {
+        const isVisible = await element.isVisible();
+        if (!isVisible) {
+          console.log(`⚠️ Field not visible: ${input.selector} (${input.label})`);
+          continue;
+        }
+        // Get additional context from the element
+        const placeholder = await element.getAttribute('placeholder') || '';
+        const name = await element.getAttribute('name') || '';
+        const id = await element.getAttribute('id') || '';
+        const type = await element.getAttribute('type') || 'text';
+        
+        // Generate intelligent data based on context
+        const intelligentValue = generateIntelligentFormData(placeholder, name, id, type, input.label, config);
+        
+        // Clear existing value first
+        await element.fill('');
+        await element.fill(intelligentValue);
+        
+        console.log(`📝 Filled ${input.label} (${placeholder || name || id}) with: ${intelligentValue}`);
+        
+        // Take screenshot after each field is filled
+        const fieldTimestamp = Date.now();
+        const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${fieldTimestamp}_form_field_filled_${input.label.replace(/\s+/g, '_')}.png`);
+        
+        addCrawlStep(
+          crawlState,
+          'form_field_filled',
+          currentUrl,
+          await page.title(),
+          fieldScreenshot,
+          `Filled field: ${input.label} (${placeholder || name || id}) with: ${intelligentValue}`,
+          [input],
+          false,
+          undefined,
+          undefined
+        );
+        
+        // Small delay between fields
+        await page.waitForTimeout(500);
+      } else {
+        console.log(`⚠️ Field not found: ${input.selector} (${input.label})`);
+      }
+    } catch (error) {
+      console.log(`❌ Could not fill field ${input.selector}: ${error}`);
+      
+      // Take screenshot of error state
+      const errorTimestamp = Date.now();
+      const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${input.label.replace(/\s+/g, '_')}.png`);
+      
+      addCrawlStep(
+        crawlState,
+        'form_field_error',
+        currentUrl,
+        await page.title(),
+        errorScreenshot,
+        `Error filling field: ${input.label} - ${error}`,
+        [input],
+        false,
+        undefined,
+        undefined
+      );
+    }
+  }
+}
+
 // Helper function to execute MCP-suggested actions
 async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState, config: any): Promise<TodoItem[]> {
   const newTodoItems: TodoItem[] = [];
@@ -635,9 +799,12 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     navigationTree.logoutButtons = logoutButtons;
   }
 
-  // Enhanced form filling with 2 items and submission
-  if (mcpAnalysis.formFields && mcpAnalysis.formFields.length > 0) {
-    console.log(`📝 MCP Agent found ${mcpAnalysis.formFields.length} form fields to fill`);
+  // Enhanced form detection and filling
+  console.log('🔍 Detecting all form inputs on page...');
+  const allFormInputs = await detectAllFormInputs(page);
+  
+  if (allFormInputs.length > 0) {
+    console.log(`📝 Found ${allFormInputs.length} form inputs to fill`);
     
     // Take screenshot BEFORE form filling
     const beforeFillTimestamp = Date.now();
@@ -651,68 +818,15 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
       currentUrl,
       await page.title(),
       beforeFillScreenshot,
-      `Starting to fill ${mcpAnalysis.formFields.length} form fields`,
-      mcpAnalysis.formFields,
+      `Starting to fill ${allFormInputs.length} form inputs`,
+      allFormInputs,
       false,
       undefined,
       mcpAnalysis
     );
     
-    // Enhanced form filling with intelligent data based on placeholders and form purpose
-    for (const field of mcpAnalysis.formFields) {
-      try {
-        const element = await page.$(field.selector);
-        if (element && await element.isVisible()) {
-          // Get additional context from the element
-          const placeholder = await element.getAttribute('placeholder') || '';
-          const name = await element.getAttribute('name') || '';
-          const id = await element.getAttribute('id') || '';
-          const type = await element.getAttribute('type') || 'text';
-          
-          // Generate intelligent data based on context
-          const intelligentValue = generateIntelligentFormData(placeholder, name, id, type, field.label, config);
-          
-          await element.fill(intelligentValue);
-          console.log(`📝 MCP filled ${field.label} (${placeholder || name || id}) with: ${intelligentValue}`);
-          
-          // Take screenshot after each field is filled
-          const fieldTimestamp = Date.now();
-          const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${fieldTimestamp}_form_field_filled_${field.label.replace(/\s+/g, '_')}.png`);
-          
-          addCrawlStep(
-            crawlState,
-            'form_field_filled',
-            currentUrl,
-            await page.title(),
-            fieldScreenshot,
-            `Filled field: ${field.label} (${placeholder || name || id}) with: ${intelligentValue}`,
-            [field],
-            false,
-            undefined,
-            mcpAnalysis
-          );
-        }
-      } catch (error) {
-        console.log(`❌ Could not fill field ${field.selector}: ${error}`);
-        
-        // Take screenshot of error state
-        const errorTimestamp = Date.now();
-        const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${field.label.replace(/\s+/g, '_')}.png`);
-        
-        addCrawlStep(
-          crawlState,
-          'form_field_error',
-          currentUrl,
-          await page.title(),
-          errorScreenshot,
-          `Error filling field: ${field.label} - ${error}`,
-          [field],
-          false,
-          undefined,
-          mcpAnalysis
-        );
-      }
-    }
+    // Fill all detected form inputs
+    await fillAllFormInputs(page, allFormInputs, currentUrl, outDir, crawlState, config);
     
     // Take screenshot AFTER all fields are filled
     const afterFillTimestamp = Date.now();
@@ -726,15 +840,32 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
       currentUrl,
       await page.title(),
       afterFillScreenshot,
-      `Completed filling ${mcpAnalysis.formFields.length} form fields`,
-      mcpAnalysis.formFields,
+      `Completed filling ${allFormInputs.length} form inputs`,
+      allFormInputs,
       false,
       undefined,
       mcpAnalysis
     );
     
-    // Look for submit buttons and submit forms
-    const submitButtons = await page.$$('button[type="submit"], input[type="submit"], button:has-text("Submit"), button:has-text("Post"), button:has-text("Create"), button:has-text("Save")');
+    // Enhanced submit button detection
+    const submitButtons = await page.$$(`
+      button[type="submit"], 
+      input[type="submit"], 
+      button:has-text("Submit"), 
+      button:has-text("Post"), 
+      button:has-text("Create"), 
+      button:has-text("Save"),
+      button:has-text("Send"),
+      button:has-text("Update"),
+      button:has-text("Add"),
+      button:has-text("Register"),
+      button:has-text("Login"),
+      button:has-text("Sign up"),
+      button:has-text("Sign in"),
+      [data-testid*="submit"],
+      [data-testid*="save"],
+      [data-testid*="create"]
+    `.replace(/\s+/g, ' ').trim());
     
     if (submitButtons.length > 0) {
       console.log(`🎯 MCP Agent found ${submitButtons.length} submit buttons`);
