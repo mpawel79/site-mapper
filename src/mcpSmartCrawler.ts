@@ -847,25 +847,73 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
       mcpAnalysis
     );
     
-    // Enhanced submit button detection
-    const submitButtons = await page.$$(`
-      button[type="submit"], 
-      input[type="submit"], 
-      button:has-text("Submit"), 
-      button:has-text("Post"), 
-      button:has-text("Create"), 
-      button:has-text("Save"),
-      button:has-text("Send"),
-      button:has-text("Update"),
-      button:has-text("Add"),
-      button:has-text("Register"),
-      button:has-text("Login"),
-      button:has-text("Sign up"),
-      button:has-text("Sign in"),
-      [data-testid*="submit"],
-      [data-testid*="save"],
-      [data-testid*="create"]
-    `.replace(/\s+/g, ' ').trim());
+    // Enhanced submit button detection with form context
+    const submitButtons = await page.evaluate(() => {
+      const buttons: any[] = [];
+      
+      // Find all forms on the page
+      const forms = document.querySelectorAll('form');
+      
+      forms.forEach((form: any, formIndex: number) => {
+        // Look for explicit submit buttons using multiple approaches
+        const explicitSubmitButtons = [];
+        
+        // Method 1: Standard submit buttons
+        const standardSubmitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+        explicitSubmitButtons.push(...Array.from(standardSubmitButtons));
+        
+        // Method 2: Buttons with submit-related text
+        const allButtons = form.querySelectorAll('button');
+        allButtons.forEach((btn: any) => {
+          const text = btn.textContent?.trim().toLowerCase() || '';
+          if (text.includes('submit') || text.includes('post') || text.includes('create') || 
+              text.includes('save') || text.includes('send') || text.includes('update') || 
+              text.includes('add') || text.includes('register') || text.includes('login') || 
+              text.includes('sign up') || text.includes('sign in') || text.includes('publish')) {
+            explicitSubmitButtons.push(btn);
+          }
+        });
+        
+        // Method 3: Buttons with submit-related data attributes
+        const dataSubmitButtons = form.querySelectorAll('[data-testid*="submit"], [data-testid*="save"], [data-testid*="create"], [data-testid*="publish"]');
+        explicitSubmitButtons.push(...Array.from(dataSubmitButtons));
+        
+        explicitSubmitButtons.forEach((btn: any) => {
+          if (btn.offsetParent !== null && !btn.disabled) {
+            buttons.push({
+              element: btn,
+              selector: btn.id ? `#${btn.id}` : 
+                       btn.name ? `[name="${btn.name}"]` :
+                       `button:nth-of-type(${Array.from(form.querySelectorAll('button')).indexOf(btn) + 1})`,
+              text: btn.textContent?.trim() || btn.value || '',
+              type: 'explicit_submit',
+              formIndex
+            });
+          }
+        });
+        
+        // If no explicit submit buttons found, look for the last button in the form
+        if (explicitSubmitButtons.length === 0) {
+          const allButtons = form.querySelectorAll('button:not([type="button"]), button[type="button"]');
+          if (allButtons.length > 0) {
+            const lastButton = allButtons[allButtons.length - 1];
+            if (lastButton.offsetParent !== null && !lastButton.disabled) {
+              buttons.push({
+                element: lastButton,
+                selector: lastButton.id ? `#${lastButton.id}` : 
+                         lastButton.name ? `[name="${lastButton.name}"]` :
+                         `button:nth-of-type(${Array.from(form.querySelectorAll('button')).indexOf(lastButton) + 1})`,
+                text: lastButton.textContent?.trim() || lastButton.value || '',
+                type: 'last_button_in_form',
+                formIndex
+              });
+            }
+          }
+        }
+      });
+      
+      return buttons;
+    });
     
     if (submitButtons.length > 0) {
       console.log(`🎯 MCP Agent found ${submitButtons.length} submit buttons`);
@@ -873,8 +921,11 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
       // Try to submit up to configured limit
       for (let i = 0; i < Math.min(config.crawler.formSubmissionLimit, submitButtons.length); i++) {
         try {
-          const submitButton = submitButtons[i];
-          if (await submitButton.isVisible()) {
+          const buttonInfo = submitButtons[i];
+          const submitButton = await page.$(buttonInfo.selector);
+          
+          if (submitButton && await submitButton.isVisible()) {
+            console.log(`🎯 Submitting form ${i + 1}/${config.crawler.formSubmissionLimit} with button: "${buttonInfo.text}" (${buttonInfo.type})`);
             // Highlight the submit button
             await submitButton.evaluate((el: any, visualConfig: any) => {
               el.style.border = `3px solid ${visualConfig.formHighlightColor}`;

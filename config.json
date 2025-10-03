@@ -84,6 +84,12 @@
       "given": "you are on newsletter signup",
       "when": "email subscription is offered",
       "then": "provide email: test@example.com and submit"
+    },
+    {
+      "situation_name": "form submission detection",
+      "given": "you are on any page with forms",
+      "when": "forms need to be submitted",
+      "then": "look for submit buttons by: 1) explicit submit buttons (type='submit', text='Submit/Post/Create/Save/Publish'), 2) last button in form if no explicit submit found, 3) buttons with submit-related text or data attributes"
     }
   ],
   "logout": {
