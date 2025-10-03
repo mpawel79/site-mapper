@@ -42,6 +42,11 @@
       "--allow-running-insecure-content"
     ]
   },
+  "devicePreset": {
+    "selected": "mobile",
+    "available": ["desktop", "ipad", "mobile", "mobile-android", "tablet-android"],
+    "description": "Selected device preset to use for crawling"
+  },
   "presets": {
     "desktop": {
       "browser": {

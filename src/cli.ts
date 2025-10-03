@@ -12,8 +12,11 @@ dotenv.config();
   
   // Check for preset selection
   const preset = process.argv[2];
+  let selectedPreset = config.devicePreset?.selected || 'desktop';
+  
   if (preset && config.presets && config.presets[preset]) {
-    console.log(`🎯 Using preset: ${preset}`);
+    console.log(`🎯 Using CLI preset: ${preset}`);
+    selectedPreset = preset;
     // Merge preset configuration with base config
     config.browser = { ...config.browser, ...config.presets[preset].browser };
     console.log(`📱 Device: ${config.browser.device || 'Desktop'}`);
@@ -21,7 +24,15 @@ dotenv.config();
   } else if (preset) {
     console.log(`⚠️ Unknown preset: ${preset}`);
     console.log(`📋 Available presets: ${Object.keys(config.presets || {}).join(', ')}`);
-    console.log(`🔄 Using default configuration`);
+    console.log(`🔄 Using default preset: ${selectedPreset}`);
+  } else {
+    console.log(`🎯 Using default preset: ${selectedPreset}`);
+    // Merge selected preset configuration with base config
+    if (config.presets && config.presets[selectedPreset]) {
+      config.browser = { ...config.browser, ...config.presets[selectedPreset].browser };
+      console.log(`📱 Device: ${config.browser.device || 'Desktop'}`);
+      console.log(`📏 Viewport: ${config.browser.viewport ? `${config.browser.viewport.width}x${config.browser.viewport.height}` : 'Device default'}`);
+    }
   }
 
 // Create session-specific output directory
