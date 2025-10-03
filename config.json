@@ -33,14 +33,6 @@
     "timezone": "UTC",
     "geolocation": null,
     "permissions": [],
-    "deviceExamples": {
-      "iPhone 12": "iPhone 12",
-      "iPad Pro": "iPad Pro",
-      "Galaxy S21": "Galaxy S21",
-      "Desktop": null,
-      "Mobile": "iPhone 12",
-      "Tablet": "iPad Pro"
-    },
     "args": [
       "--start-maximized",
       "--no-sandbox",
@@ -49,6 +41,91 @@
       "--disable-web-security",
       "--allow-running-insecure-content"
     ]
+  },
+  "presets": {
+    "desktop": {
+      "browser": {
+        "headless": false,
+        "devtools": false,
+        "slowMo": 1000,
+        "browserType": "chromium",
+        "viewport": {
+          "width": 1920,
+          "height": 1080,
+          "deviceScaleFactor": 1
+        },
+        "device": null,
+        "userAgent": null,
+        "locale": "en-US",
+        "timezone": "UTC",
+        "geolocation": null,
+        "permissions": []
+      }
+    },
+    "ipad": {
+      "browser": {
+        "headless": false,
+        "devtools": false,
+        "slowMo": 1000,
+        "browserType": "chromium",
+        "viewport": null,
+        "device": "iPad Pro",
+        "userAgent": null,
+        "locale": "en-US",
+        "timezone": "UTC",
+        "geolocation": null,
+        "permissions": []
+      }
+    },
+    "mobile": {
+      "browser": {
+        "headless": false,
+        "devtools": false,
+        "slowMo": 1000,
+        "browserType": "chromium",
+        "viewport": null,
+        "device": "iPhone 12",
+        "userAgent": null,
+        "locale": "en-US",
+        "timezone": "UTC",
+        "geolocation": null,
+        "permissions": []
+      }
+    },
+    "mobile-android": {
+      "browser": {
+        "headless": false,
+        "devtools": false,
+        "slowMo": 1000,
+        "browserType": "chromium",
+        "viewport": null,
+        "device": "Galaxy S21",
+        "userAgent": null,
+        "locale": "en-US",
+        "timezone": "UTC",
+        "geolocation": null,
+        "permissions": []
+      }
+    },
+    "tablet-android": {
+      "browser": {
+        "headless": false,
+        "devtools": false,
+        "slowMo": 1000,
+        "browserType": "chromium",
+        "viewport": {
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 1
+        },
+        "device": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; SM-T510) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Safari/537.36",
+        "locale": "en-US",
+        "timezone": "UTC",
+        "geolocation": null,
+        "permissions": []
+      }
+    }
   },
   "output": {
     "screenshotDir": "out/images",

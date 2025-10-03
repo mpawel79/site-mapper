@@ -4,12 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-  "start": "node --loader ts-node/esm src/cli.ts",
-  "start:headed": "node --loader ts-node/esm src/cli.ts",
-  "start:headless": "HEADLESS=true node --loader ts-node/esm src/cli.ts",
-  "start:slow": "SLOW_MO=2000 node --loader ts-node/esm src/cli.ts",
-  "build": "tsc",
-  "prepare-playwright": "npx playwright install"
+    "start": "node --loader ts-node/esm src/cli.ts",
+    "start:headed": "node --loader ts-node/esm src/cli.ts",
+    "start:headless": "HEADLESS=true node --loader ts-node/esm src/cli.ts",
+    "start:slow": "SLOW_MO=2000 node --loader ts-node/esm src/cli.ts",
+    "start:desktop": "node --loader ts-node/esm src/cli.ts desktop",
+    "start:ipad": "node --loader ts-node/esm src/cli.ts ipad",
+    "start:mobile": "node --loader ts-node/esm src/cli.ts mobile",
+    "start:mobile-android": "node --loader ts-node/esm src/cli.ts mobile-android",
+    "start:tablet-android": "node --loader ts-node/esm src/cli.ts tablet-android",
+    "build": "tsc",
+    "prepare-playwright": "npx playwright install"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -7,8 +7,22 @@ import { runMCPSmartCrawl } from './mcpSmartCrawler.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Load configuration
-const config = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'config.json'), 'utf8'));
+  // Load configuration
+  const config = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'config.json'), 'utf8'));
+  
+  // Check for preset selection
+  const preset = process.argv[2];
+  if (preset && config.presets && config.presets[preset]) {
+    console.log(`🎯 Using preset: ${preset}`);
+    // Merge preset configuration with base config
+    config.browser = { ...config.browser, ...config.presets[preset].browser };
+    console.log(`📱 Device: ${config.browser.device || 'Desktop'}`);
+    console.log(`📏 Viewport: ${config.browser.viewport ? `${config.browser.viewport.width}x${config.browser.viewport.height}` : 'Device default'}`);
+  } else if (preset) {
+    console.log(`⚠️ Unknown preset: ${preset}`);
+    console.log(`📋 Available presets: ${Object.keys(config.presets || {}).join(', ')}`);
+    console.log(`🔄 Using default configuration`);
+  }
 
 // Create session-specific output directory
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
