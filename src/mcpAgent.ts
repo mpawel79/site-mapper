@@ -47,6 +47,8 @@ export class MCPAgent {
     3. Form fields with appropriate dummy data suggestions
     4. Navigation priorities (what to explore first)
     5. Crawling strategy for this specific page
+    6. Page name extraction (main heading or title)
+    7. Area name identification (form areas, navigation areas, content sections)
     
     Focus on:
     - Finding the most valuable content to explore
@@ -58,6 +60,8 @@ export class MCPAgent {
     Respond with a JSON structure:
     {
       "pageType": "string",
+      "pageName": "string",
+      "areaName": "string",
       "crawlingStrategy": "string",
       "interactiveElements": [
         {
@@ -227,6 +231,8 @@ export class MCPAgent {
   private getFallbackAnalysis(): any {
     return {
       pageType: 'webpage',
+      pageName: 'Unknown Page',
+      areaName: 'Main Content Area',
       crawlingStrategy: 'intelligent_fallback_exploration',
       interactiveElements: [
         {

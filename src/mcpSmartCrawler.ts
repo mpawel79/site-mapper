@@ -30,6 +30,8 @@ interface CrawlStep {
   action: string;
   url: string;
   title: string;
+  page_name: string;
+  area_name: string;
   screenshot: string;
   description: string;
   previousStepId?: string;
@@ -190,11 +192,15 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${timestamp}_page_${pageCount + 1}.png`);
       
       // Add initial page visit step
+      const pageName = await extractPageName(page);
+      const areaName = await extractAreaName(page, 'page_visit');
       addCrawlStep(
         crawlState,
         'page_visit',
         todoItem.url,
         await page.title(),
+        pageName,
+        areaName,
         screenshot,
         `Visited page: ${todoItem.title}`,
         undefined,
@@ -332,11 +338,15 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
               const errorTimestamp = Date.now();
               const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_page_error_${pageCount + 1}.png`);
               
+              const pageName = await extractPageName(page);
+              const areaName = await extractAreaName(page, 'page_error');
               addCrawlStep(
                 crawlState,
                 'page_error',
                 todoItem.url,
                 await page.title(),
+                pageName,
+                areaName,
                 errorScreenshot,
                 `Error exploring page: ${(error as any).message || error}`,
                 undefined,
@@ -410,12 +420,133 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
   await browser.close();
 }
 
+// Helper function to extract page name from page content
+async function extractPageName(page: any): Promise<string> {
+  try {
+    // Try to get the main heading or title
+    const h1 = await page.$('h1');
+    if (h1) {
+      const h1Text = await h1.textContent();
+      if (h1Text && h1Text.trim()) {
+        return h1Text.trim();
+      }
+    }
+    
+    // Try to get page title
+    const title = await page.title();
+    if (title && title.trim()) {
+      return title.trim();
+    }
+    
+    // Try to get any heading
+    const heading = await page.$('h1, h2, h3, h4, h5, h6');
+    if (heading) {
+      const headingText = await heading.textContent();
+      if (headingText && headingText.trim()) {
+        return headingText.trim();
+      }
+    }
+    
+    return 'Unknown Page';
+  } catch (error) {
+    console.log('Error extracting page name:', error);
+    return 'Unknown Page';
+  }
+}
+
+// Helper function to extract area name from page context
+async function extractAreaName(page: any, action: string, formFields?: any[]): Promise<string> {
+  try {
+    // For form-related actions, try to identify the form area
+    if (action.includes('form') || formFields) {
+      // Look for form labels or legends
+      const formLegend = await page.$('legend');
+      if (formLegend) {
+        const legendText = await formLegend.textContent();
+        if (legendText && legendText.trim()) {
+          return legendText.trim();
+        }
+      }
+      
+      // Look for form fieldset
+      const fieldset = await page.$('fieldset');
+      if (fieldset) {
+        const fieldsetLegend = await fieldset.$('legend');
+        if (fieldsetLegend) {
+          const legendText = await fieldsetLegend.textContent();
+          if (legendText && legendText.trim()) {
+            return legendText.trim();
+          }
+        }
+      }
+      
+      // Look for form container with class or id
+      const formContainer = await page.$('form, .form, #form, .form-container, .form-wrapper');
+      if (formContainer) {
+        const formTitle = await formContainer.$('h1, h2, h3, h4, h5, h6, .form-title, .form-header');
+        if (formTitle) {
+          const titleText = await formTitle.textContent();
+          if (titleText && titleText.trim()) {
+            return titleText.trim();
+          }
+        }
+      }
+      
+      return 'Form Area';
+    }
+    
+    // For navigation actions, try to identify the navigation area
+    if (action.includes('navigation') || action.includes('click')) {
+      const navElement = await page.$('nav, .nav, .navigation, .menu, .navbar');
+      if (navElement) {
+        const navTitle = await navElement.$('h1, h2, h3, h4, h5, h6, .nav-title, .menu-title');
+        if (navTitle) {
+          const titleText = await navTitle.textContent();
+          if (titleText && titleText.trim()) {
+            return titleText.trim();
+          }
+        }
+        return 'Navigation Area';
+      }
+    }
+    
+    // For list actions, try to identify the list area
+    if (action.includes('list') || action.includes('select')) {
+      const listElement = await page.$('ul, ol, .list, .menu, .dropdown');
+      if (listElement) {
+        const listTitle = await listElement.$('h1, h2, h3, h4, h5, h6, .list-title, .menu-title');
+        if (listTitle) {
+          const titleText = await listTitle.textContent();
+          if (titleText && titleText.trim()) {
+            return titleText.trim();
+          }
+        }
+        return 'List Area';
+      }
+    }
+    
+    // Default area name based on action
+    if (action.includes('form')) return 'Form Area';
+    if (action.includes('navigation')) return 'Navigation Area';
+    if (action.includes('list')) return 'List Area';
+    if (action.includes('button')) return 'Button Area';
+    if (action.includes('link')) return 'Link Area';
+    
+    return 'Main Content Area';
+  } catch (error) {
+    console.log('Error extracting area name:', error);
+    return 'Main Content Area';
+  }
+}
+
 // Helper function to add a step to crawl state
 function addCrawlStep(
   crawlState: CrawlState,
   action: string,
   url: string,
   title: string,
+  page_name: string,
+  area_name: string,
   screenshot: string,
   description: string,
   formFields?: any[],
@@ -434,6 +565,8 @@ function addCrawlStep(
     action: action,
     url: url,
     title: title,
+    page_name: page_name,
+    area_name: area_name,
     screenshot: screenshot,
     description: description,
     previousStepId: crawlState.currentStepId,
@@ -567,11 +700,15 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
       const beforeLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${beforeLogoutTimestamp}_before_logout.png`);
       
       // Add step for logout attempt
+      const pageName = await extractPageName(page);
+      const areaName = await extractAreaName(page, 'logout_attempt');
       addCrawlStep(
         crawlState,
         'logout_attempt',
         page.url(),
         await page.title(),
+        pageName,
+        areaName,
         beforeLogoutScreenshot,
         `Attempting to logout/sign out as final step`,
         undefined,
@@ -599,11 +736,15 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
         const afterLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterLogoutTimestamp}_after_logout.png`);
         
         // Add step for successful logout
+        const pageName = await extractPageName(page);
+        const areaName = await extractAreaName(page, 'logout_success');
         addCrawlStep(
           crawlState,
           'logout_success',
           page.url(),
           await page.title(),
+          pageName,
+          areaName,
           afterLogoutScreenshot,
           `Successfully logged out/signed out`,
           undefined,
@@ -617,11 +758,15 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
         console.log(`⚠️ Logout button not visible or accessible`);
         
         // Add step for logout failure
+        const pageName = await extractPageName(page);
+        const areaName = await extractAreaName(page, 'logout_failed');
         addCrawlStep(
           crawlState,
           'logout_failed',
           page.url(),
           await page.title(),
+          pageName,
+          areaName,
           beforeLogoutScreenshot,
           `Logout button not accessible`,
           undefined,
@@ -638,11 +783,15 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
       const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_logout_error.png`);
       
       // Add step for logout error
+      const pageName = await extractPageName(page);
+      const areaName = await extractAreaName(page, 'logout_error');
       addCrawlStep(
         crawlState,
         'logout_error',
         page.url(),
         await page.title(),
+        pageName,
+        areaName,
         errorScreenshot,
         `Error during logout: ${error}`,
         undefined,
@@ -779,11 +928,15 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
         const fieldTimestamp = Date.now();
         const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${fieldTimestamp}_form_field_filled_${input.label.replace(/\s+/g, '_')}.png`);
         
+        const pageName = await extractPageName(page);
+        const areaName = await extractAreaName(page, 'form_field_filled', [input]);
         addCrawlStep(
           crawlState,
           'form_field_filled',
           currentUrl,
           await page.title(),
+          pageName,
+          areaName,
           fieldScreenshot,
           `Filled field: ${input.label} (${placeholder || name || id}) with: ${intelligentValue}`,
           [input],
@@ -827,11 +980,15 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
             errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${input.label.replace(/\s+/g, '_')}.png`);
           }
 
+          const pageName = await extractPageName(page);
+          const areaName = await extractAreaName(page, 'form_field_error', [input]);
           addCrawlStep(
             crawlState,
             'form_field_error',
             currentUrl,
             await page.title(),
+            pageName,
+            areaName,
             errorScreenshot,
             `Error filling field: ${input.label} - ${error}`,
             [input],
@@ -875,11 +1032,15 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     console.log(`📸 Screenshot taken BEFORE form filling: ${beforeFillScreenshot}`);
     
     // Add step for form filling start
+    const startPageName = await extractPageName(page);
+    const startAreaName = await extractAreaName(page, 'form_fill_start', allFormInputs);
     addCrawlStep(
       crawlState,
       'form_fill_start',
       currentUrl,
       await page.title(),
+      startPageName,
+      startAreaName,
       beforeFillScreenshot,
       `Starting to fill ${allFormInputs.length} form inputs`,
       allFormInputs,
@@ -897,11 +1058,15 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     console.log(`📸 Screenshot taken AFTER form filling: ${afterFillScreenshot}`);
     
     // Add step for form filling completion
+    const completePageName = await extractPageName(page);
+    const completeAreaName = await extractAreaName(page, 'form_fill_complete', allFormInputs);
     addCrawlStep(
       crawlState,
       'form_fill_complete',
       currentUrl,
       await page.title(),
+      completePageName,
+      completeAreaName,
       afterFillScreenshot,
       `Completed filling ${allFormInputs.length} form inputs`,
       allFormInputs,
@@ -1009,11 +1174,15 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
             console.log(`📸 Screenshot taken AFTER form ${i + 1} submission: ${afterSubmitScreenshot}`);
             
             // Add step for form submission
+            const pageName = await extractPageName(page);
+            const areaName = await extractAreaName(page, 'form_submit', mcpAnalysis.formFields);
             addCrawlStep(
               crawlState,
               'form_submit',
               currentUrl,
               await page.title(),
+              pageName,
+              areaName,
               afterSubmitScreenshot,
               `Submitted form ${i + 1}/2`,
               mcpAnalysis.formFields,
@@ -1080,11 +1249,15 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
                   const errorTimestamp = Date.now();
                   const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_submit_error_${i + 1}.png`);
                   
+                  const pageName = await extractPageName(page);
+                  const areaName = await extractAreaName(page, 'form_submit_error', allFormInputs);
                   addCrawlStep(
                     crawlState,
                     'form_submit_error',
                     currentUrl,
                     await page.title(),
+                    pageName,
+                    areaName,
                     errorScreenshot,
                     `Error submitting form ${i + 1}: ${error}`,
                     allFormInputs,
