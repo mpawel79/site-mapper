@@ -940,6 +940,17 @@ class WorkflowIdentifier {
             width: 100%;
             height: auto;
             display: block;
+            max-height: 80vh;
+            overflow-y: auto;
+            cursor: grab;
+        }
+        .modal-image:active {
+            cursor: grabbing;
+        }
+        .modal-image-container {
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 5px;
         }
         .modal-caption {
             padding: 15px;
@@ -1276,7 +1287,9 @@ class WorkflowIdentifier {
             <div id="modalCounter" class="modal-counter"></div>
             <button id="modalNavPrev" class="modal-navigation modal-nav-prev" onclick="navigateScreenshot(-1)">&lt;</button>
             <button id="modalNavNext" class="modal-navigation modal-nav-next" onclick="navigateScreenshot(1)">&gt;</button>
-            <img id="modalImage" class="modal-image" src="" alt="">
+            <div class="modal-image-container">
+                <img id="modalImage" class="modal-image" src="" alt="">
+            </div>
             <div id="modalCaption" class="modal-caption"></div>
         </div>
     </div>
@@ -1286,28 +1299,6 @@ class WorkflowIdentifier {
         let currentScreenshotIndex = 0;
         let workflowScreenshots = [];
         
-        function openScreenshotOverlay(workflowIndex, imageSrc, caption) {
-            currentWorkflowIndex = workflowIndex;
-            
-            // Get all screenshots for this workflow
-            const workflowGroup = document.querySelector(\`[data-workflow-index="\${workflowIndex}"]\`);
-            const screenshotItems = workflowGroup.querySelectorAll('.workflow-screenshot-item');
-            workflowScreenshots = Array.from(screenshotItems).map(item => ({
-                src: item.querySelector('img').src,
-                caption: item.querySelector('img').alt
-            }));
-            
-            // Find current screenshot index
-            currentScreenshotIndex = workflowScreenshots.findIndex(s => s.src === imageSrc);
-            if (currentScreenshotIndex === -1) currentScreenshotIndex = 0;
-            
-            showScreenshot(currentScreenshotIndex);
-            updateNavigationButtons();
-            
-            const modal = document.getElementById('screenshotModal');
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
         
         
         function showScreenshot(index) {
@@ -1369,6 +1360,91 @@ class WorkflowIdentifier {
                 }
             }
         });
+        
+        // Image scrolling functionality
+        let isDragging = false;
+        let startY = 0;
+        let scrollTop = 0;
+        
+        function setupImageScrolling() {
+            const modalImage = document.getElementById('modalImage');
+            const imageContainer = modalImage.parentElement;
+            
+            // Mouse wheel scrolling
+            imageContainer.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                imageContainer.scrollTop += e.deltaY;
+            });
+            
+            // Drag scrolling
+            imageContainer.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startY = e.pageY - imageContainer.offsetTop;
+                scrollTop = imageContainer.scrollTop;
+                imageContainer.style.cursor = 'grabbing';
+            });
+            
+            imageContainer.addEventListener('mouseleave', function() {
+                isDragging = false;
+                imageContainer.style.cursor = 'grab';
+            });
+            
+            imageContainer.addEventListener('mouseup', function() {
+                isDragging = false;
+                imageContainer.style.cursor = 'grab';
+            });
+            
+            imageContainer.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const y = e.pageY - imageContainer.offsetTop;
+                const walk = (y - startY) * 2;
+                imageContainer.scrollTop = scrollTop - walk;
+            });
+            
+            // Touch scrolling for mobile
+            let touchStartY = 0;
+            let touchScrollTop = 0;
+            
+            imageContainer.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].pageY;
+                touchScrollTop = imageContainer.scrollTop;
+            });
+            
+            imageContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touchY = e.touches[0].pageY;
+                const touchWalk = (touchY - touchStartY) * 1.5;
+                imageContainer.scrollTop = touchScrollTop - touchWalk;
+            });
+        }
+        
+        // Initialize scrolling when modal opens
+        function openScreenshotOverlay(workflowIndex, imageSrc, caption) {
+            currentWorkflowIndex = workflowIndex;
+            
+            // Get all screenshots for this workflow
+            const workflowGroup = document.querySelector(\`[data-workflow-index="\${workflowIndex}"]\`);
+            const screenshotItems = workflowGroup.querySelectorAll('.workflow-screenshot-item');
+            workflowScreenshots = Array.from(screenshotItems).map(item => ({
+                src: item.querySelector('img').src,
+                caption: item.querySelector('img').alt
+            }));
+            
+            // Find current screenshot index
+            currentScreenshotIndex = workflowScreenshots.findIndex(s => s.src === imageSrc);
+            if (currentScreenshotIndex === -1) currentScreenshotIndex = 0;
+            
+            showScreenshot(currentScreenshotIndex);
+            updateNavigationButtons();
+            
+            const modal = document.getElementById('screenshotModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Setup scrolling after modal is shown
+            setTimeout(setupImageScrolling, 100);
+        }
     </script>
 </body>
 </html>`;
