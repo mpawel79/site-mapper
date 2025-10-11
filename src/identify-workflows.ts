@@ -860,8 +860,9 @@ class WorkflowIdentifier {
             display: flex;
             flex-direction: row;
             gap: 8px;
-            max-width: 300px;
+            max-width: 500px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .screenshot-thumbnail {
             position: relative;
@@ -1127,7 +1128,8 @@ class WorkflowIdentifier {
             <tbody>`;
 
     // Add workflow rows
-    for (const workflow of this.workflows) {
+    for (let i = 0; i < this.workflows.length; i++) {
+      const workflow = this.workflows[i];
       const stepsIds = workflow.stepsIds.join(', ');
       const inputs = workflow.inputs.length > 0 ? workflow.inputs.slice(0, 3).join('; ') + (workflow.inputs.length > 3 ? '...' : '') : 'None';
       const outputs = workflow.outputs.length > 0 ? workflow.outputs.join('; ') : 'None';
@@ -1136,7 +1138,7 @@ class WorkflowIdentifier {
         workflow.comment.substring(0, 37) + '...' : workflow.comment;
       
       const journeyClass = this.getJourneyClass(workflow.userJourneyName);
-      const screenshots = this.getWorkflowScreenshots(workflow);
+      const screenshots = this.getWorkflowScreenshots(workflow, i);
       
       content += `
                 <tr>
@@ -1307,30 +1309,6 @@ class WorkflowIdentifier {
             document.body.style.overflow = 'hidden';
         }
         
-        // Legacy function for table thumbnails
-        function openScreenshotModal(imageSrc, caption) {
-            // Find which workflow this screenshot belongs to
-            const tableRows = document.querySelectorAll('tbody tr');
-            let foundWorkflowIndex = -1;
-            
-            for (let i = 0; i < tableRows.length; i++) {
-                const screenshotsContainer = tableRows[i].querySelector('.screenshots-container');
-                if (screenshotsContainer) {
-                    const thumbnails = screenshotsContainer.querySelectorAll('.screenshot-thumbnail img');
-                    for (let j = 0; j < thumbnails.length; j++) {
-                        if (thumbnails[j].src === imageSrc) {
-                            foundWorkflowIndex = i;
-                            break;
-                        }
-                    }
-                }
-                if (foundWorkflowIndex !== -1) break;
-            }
-            
-            if (foundWorkflowIndex !== -1) {
-                openScreenshotOverlay(foundWorkflowIndex, imageSrc, caption);
-            }
-        }
         
         function showScreenshot(index) {
             if (workflowScreenshots.length === 0) return;
@@ -1411,7 +1389,7 @@ class WorkflowIdentifier {
     return journeyMap[journeyName] || 'unknown';
   }
 
-  private getWorkflowScreenshots(workflow: Workflow): string {
+  private getWorkflowScreenshots(workflow: Workflow, workflowIndex: number): string {
     const sessionDir = this.mapData.metadata.sessionInfo.sessionDir;
     const imagesDir = path.join(path.dirname(this.mapFilePath), 'images');
     
@@ -1422,11 +1400,8 @@ class WorkflowIdentifier {
     
     let screenshotsHtml = '<div class="screenshots-container">';
     let screenshotCount = 0;
-    const maxScreenshots = 3; // Limit to 3 screenshots per workflow for table display
     
     for (const step of workflowSteps) {
-      if (screenshotCount >= maxScreenshots) break;
-      
       if (step.screenshot) {
         // Extract just the filename from the full path
         const screenshotPath = step.screenshot;
@@ -1439,7 +1414,7 @@ class WorkflowIdentifier {
           const altText = `${step.id}: ${step.action}`;
           
           screenshotsHtml += `
-            <div class="screenshot-thumbnail" onclick="openScreenshotModal('${relativePath}', '${altText}')">
+            <div class="screenshot-thumbnail" onclick="openScreenshotOverlay(${workflowIndex}, '${relativePath}', '${altText}')">
               <img src="${relativePath}" 
                    alt="${altText}" 
                    title="${altText}"
@@ -1454,8 +1429,6 @@ class WorkflowIdentifier {
     
     if (screenshotCount === 0) {
       screenshotsHtml += '<span class="no-screenshots">No screenshots available</span>';
-    } else if (workflowSteps.length > maxScreenshots) {
-      screenshotsHtml += `<div class="more-screenshots">+${workflowSteps.length - maxScreenshots} more</div>`;
     }
     
     screenshotsHtml += '</div>';
