@@ -929,28 +929,36 @@ class WorkflowIdentifier {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            max-width: 90%;
-            max-height: 90%;
+            width: 90vw;
+            height: 90vh;
+            max-width: 1200px;
+            max-height: 800px;
             background: white;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
         }
         .modal-image {
             width: 100%;
             height: auto;
             display: block;
-            max-height: 80vh;
-            overflow-y: auto;
             cursor: grab;
+            object-fit: contain;
         }
         .modal-image:active {
             cursor: grabbing;
         }
         .modal-image-container {
-            max-height: 80vh;
+            flex: 1;
             overflow-y: auto;
             border-radius: 5px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            background: #f8f9fa;
         }
         .modal-caption {
             padding: 15px;
@@ -958,6 +966,7 @@ class WorkflowIdentifier {
             border-top: 1px solid #e9ecef;
             font-weight: 600;
             color: #333;
+            flex-shrink: 0;
         }
         .close {
             position: absolute;
