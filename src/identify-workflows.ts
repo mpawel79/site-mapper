@@ -879,33 +879,6 @@ class WorkflowIdentifier {
             transform: scale(1.05);
             z-index: 10;
         }
-        .screenshot-thumbnail:hover::after {
-            content: '';
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 200px;
-            background: white;
-            border: 3px solid #667eea;
-            border-radius: 8px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            z-index: 1000;
-            pointer-events: none;
-        }
-        .screenshot-thumbnail:hover .screenshot-img {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 5px;
-            z-index: 1001;
-            pointer-events: none;
-        }
         .screenshot-img {
             width: 100%;
             height: 100%;
@@ -1334,6 +1307,31 @@ class WorkflowIdentifier {
             document.body.style.overflow = 'hidden';
         }
         
+        // Legacy function for table thumbnails
+        function openScreenshotModal(imageSrc, caption) {
+            // Find which workflow this screenshot belongs to
+            const tableRows = document.querySelectorAll('tbody tr');
+            let foundWorkflowIndex = -1;
+            
+            for (let i = 0; i < tableRows.length; i++) {
+                const screenshotsContainer = tableRows[i].querySelector('.screenshots-container');
+                if (screenshotsContainer) {
+                    const thumbnails = screenshotsContainer.querySelectorAll('.screenshot-thumbnail img');
+                    for (let j = 0; j < thumbnails.length; j++) {
+                        if (thumbnails[j].src === imageSrc) {
+                            foundWorkflowIndex = i;
+                            break;
+                        }
+                    }
+                }
+                if (foundWorkflowIndex !== -1) break;
+            }
+            
+            if (foundWorkflowIndex !== -1) {
+                openScreenshotOverlay(foundWorkflowIndex, imageSrc, caption);
+            }
+        }
+        
         function showScreenshot(index) {
             if (workflowScreenshots.length === 0) return;
             
@@ -1441,7 +1439,7 @@ class WorkflowIdentifier {
           const altText = `${step.id}: ${step.action}`;
           
           screenshotsHtml += `
-            <div class="screenshot-thumbnail">
+            <div class="screenshot-thumbnail" onclick="openScreenshotModal('${relativePath}', '${altText}')">
               <img src="${relativePath}" 
                    alt="${altText}" 
                    title="${altText}"
