@@ -3,7 +3,7 @@ const genAI = new GoogleGenerativeAI('AIzaSyDAxKG31sXT0Ph5xhJa5m61KdoiEWeL5G0');
 export class AIAgent {
     constructor(domain) {
         this.visitedUrls = new Set();
-        this.model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        this.model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
         this.domain = domain;
     }
     async analyzePage(page) {
@@ -64,23 +64,9 @@ export class AIAgent {
       "suggestedActions": ["string"]
     }
     `;
-        try {
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            // Extract JSON from response
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            else {
-                throw new Error('No JSON found in response');
-            }
-        }
-        catch (error) {
-            console.error('Error analyzing page with AI:', error);
-            return this.getFallbackAnalysis(page);
-        }
+        // Skip AI for now and use fallback analysis
+        console.log('🔄 Skipping AI analysis, using fallback');
+        return await this.getFallbackAnalysis(page);
     }
     async extractPageContent(page) {
         return await page.evaluate(() => {
@@ -138,30 +124,41 @@ export class AIAgent {
         // Extract basic page information without AI
         const interactiveElements = await page.evaluate(() => {
             const elements = [];
-            // Get all clickable elements
-            const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"]'));
-            const links = Array.from(document.querySelectorAll('a[href]'));
-            const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
-            buttons.forEach((el, i) => {
+            // Get all clickable elements with better selectors
+            const allClickable = document.querySelectorAll('button, input[type="button"], input[type="submit"], a[href], [role="button"], [onclick]');
+            console.log('Found clickable elements:', allClickable.length);
+            allClickable.forEach((el, i) => {
+                const tagName = el.tagName.toLowerCase();
+                const text = el.textContent?.trim() || el.getAttribute('value') || el.getAttribute('aria-label') || '';
+                const href = el.getAttribute('href');
+                console.log(`Element ${i}: ${tagName}, text: "${text}", href: "${href}"`);
+                // Skip external links and empty elements
+                if (href && (href.startsWith('http') || href.startsWith('#'))) {
+                    console.log(`Skipping external/empty link: ${href}`);
+                    return;
+                }
+                if (!text && !href) {
+                    console.log(`Skipping empty element`);
+                    return;
+                }
+                let selector = '';
+                if (el.id) {
+                    selector = `#${el.id}`;
+                }
+                else if (el.className) {
+                    const firstClass = el.className.split(' ')[0];
+                    selector = `${tagName}.${firstClass}`;
+                }
+                else {
+                    selector = `${tagName}:nth-of-type(${i + 1})`;
+                }
                 elements.push({
-                    selector: `button:nth-of-type(${i + 1})`,
-                    type: 'button',
-                    text: el.textContent?.trim() || el.getAttribute('value') || '',
-                    purpose: 'navigation or action',
+                    selector: selector,
+                    type: tagName === 'a' ? 'link' : 'button',
+                    text: text,
+                    purpose: href ? 'navigation' : 'action',
                     action: 'click'
                 });
-            });
-            links.forEach((el, i) => {
-                const href = el.getAttribute('href');
-                if (href && !href.startsWith('http') && !href.startsWith('#')) {
-                    elements.push({
-                        selector: `a:nth-of-type(${i + 1})`,
-                        type: 'link',
-                        text: el.textContent?.trim() || '',
-                        purpose: 'navigation',
-                        action: 'click'
-                    });
-                }
             });
             return elements;
         });
@@ -202,18 +199,41 @@ export class AIAgent {
             links.forEach((link, i) => {
                 const href = link.getAttribute('href');
                 const text = link.textContent?.trim();
-                if (href && text && !href.startsWith('http') && !href.startsWith('#')) {
+                if (href && text) {
+                    // Skip external links but include internal ones
+                    if (href.startsWith('http') && !href.includes('demo.realworld.show')) {
+                        return;
+                    }
                     let priority = 1;
-                    if (text.toLowerCase().includes('article'))
+                    const lowerText = text.toLowerCase();
+                    if (lowerText.includes('article'))
                         priority = 5;
-                    else if (text.toLowerCase().includes('profile'))
+                    else if (lowerText.includes('profile'))
                         priority = 4;
-                    else if (text.toLowerCase().includes('settings'))
+                    else if (lowerText.includes('settings'))
                         priority = 3;
-                    else if (text.toLowerCase().includes('editor'))
+                    else if (lowerText.includes('editor'))
                         priority = 4;
+                    else if (lowerText.includes('home'))
+                        priority = 2;
+                    else if (lowerText.includes('login'))
+                        priority = 1;
+                    else if (lowerText.includes('sign'))
+                        priority = 1;
+                    // Create better selector
+                    let selector = '';
+                    if (link.id) {
+                        selector = `#${link.id}`;
+                    }
+                    else if (link.className) {
+                        const firstClass = link.className.split(' ')[0];
+                        selector = `a.${firstClass}`;
+                    }
+                    else {
+                        selector = `a:nth-of-type(${i + 1})`;
+                    }
                     options.push({
-                        selector: `a:nth-of-type(${i + 1})`,
+                        selector: selector,
                         text: text,
                         destination: href,
                         priority: priority

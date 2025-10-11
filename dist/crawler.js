@@ -22,7 +22,7 @@ export async function runCrawlWithAuth(seed, profile, outDir) {
     await page.waitForLoadState('networkidle');
     console.log('Signed up successfully, now on main page');
     // capture main page
-    const mainShot = await saveScreenshot(page, path.join(outDir, 'images'), 'main_page.png');
+    const mainShot = await saveScreenshot(page, path.join(outDir, 'images'), 'main_page.png', 'n_main');
     console.log(`Current URL: ${page.url()}`);
     console.log(`Page title: ${await page.title()}`);
     // extract actions
@@ -54,7 +54,7 @@ export async function runCrawlWithAuth(seed, profile, outDir) {
         // only add if we haven't visited this URL before
         if (!visitedUrls.has(destUrl)) {
             const nodeId = `n_${i + 1}`;
-            const shot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${i + 1}.png`);
+            const shot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${i + 1}.png`, nodeId);
             nodes.push({ id: nodeId, url: destUrl, title: await page.title(), screenshot: shot });
             edges.push({ id: `e_${i + 1}`, source: 'n_main', dest: nodeId, action: a, element_screenshot: elShot });
             visitedUrls.add(destUrl);

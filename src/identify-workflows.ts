@@ -65,9 +65,27 @@ class WorkflowIdentifier {
   private loadMapData(mapFilePath: string): MapData {
     try {
       const data = fs.readFileSync(mapFilePath, 'utf8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      
+      // Validate the structure
+      if (!parsed.metadata) {
+        throw new Error('Invalid map.json: missing metadata section');
+      }
+      
+      if (!parsed.metadata.sessionInfo) {
+        throw new Error('Invalid map.json: missing sessionInfo in metadata. This appears to be an old format map file.');
+      }
+      
+      if (!parsed.crawlState || !parsed.crawlState.steps) {
+        throw new Error('Invalid map.json: missing crawlState.steps section');
+      }
+      
+      return parsed as MapData;
     } catch (error) {
-      console.error(`Error loading map file: ${error}`);
+      console.error(`❌ Error loading map file: ${error}`);
+      console.log('');
+      console.log('The map.json file must be from a recent crawling session with the correct format.');
+      console.log('Make sure you are pointing to a session directory that contains a valid map.json file.');
       process.exit(1);
     }
   }
@@ -657,23 +675,66 @@ function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0) {
-    console.log('Usage: identify-workflows <map.json file path>');
-    console.log('Example: identify-workflows out/session_2025-10-02T04-17-22__demo.realworld.show/map.json');
+    console.error('❌ Error: Session directory is required');
+    console.log('');
+    console.log('Usage: npm run identify-workflows <session-directory>');
+    console.log('');
+    console.log('Examples:');
+    console.log('  npm run identify-workflows out/session_2025-10-11T16-45-16__demo.realworld.show');
+    console.log('  npm run identify-workflows out/session_2025-10-08T23-05-01__demo.realworld.show');
+    console.log('');
+    console.log('This command only performs analysis of existing map.json files - no crawling is performed.');
     process.exit(1);
   }
   
-  const mapFilePath = args[0];
+  const sessionDir = args[0];
   
+  // Check if directory exists
+  if (!fs.existsSync(sessionDir)) {
+    console.error(`❌ Error: Session directory '${sessionDir}' does not exist`);
+    console.log('');
+    console.log('Available session directories:');
+    try {
+      const outDir = 'out';
+      if (fs.existsSync(outDir)) {
+        const sessions = fs.readdirSync(outDir)
+          .filter(item => fs.statSync(path.join(outDir, item)).isDirectory())
+          .filter(item => item.startsWith('session_'))
+          .sort()
+          .reverse(); // Most recent first
+        
+        if (sessions.length > 0) {
+          sessions.forEach(session => console.log(`  - ${session}`));
+        } else {
+          console.log('  No session directories found in out/');
+        }
+      } else {
+        console.log('  No out/ directory found');
+      }
+    } catch (error) {
+      console.log('  Could not list available sessions');
+    }
+    process.exit(1);
+  }
+  
+  // Check if map.json exists in the directory
+  const mapFilePath = path.join(sessionDir, 'map.json');
   if (!fs.existsSync(mapFilePath)) {
-    console.error(`Error: File ${mapFilePath} does not exist`);
+    console.error(`❌ Error: map.json file not found in '${sessionDir}'`);
+    console.log('');
+    console.log('The specified directory must contain a map.json file from a previous crawling session.');
     process.exit(1);
   }
+  
+  console.log(`🔍 Analyzing workflows in: ${sessionDir}`);
+  console.log(`📄 Using map file: ${mapFilePath}`);
+  console.log('');
   
   try {
     const identifier = new WorkflowIdentifier(mapFilePath);
     identifier.generateReport();
   } catch (error) {
-    console.error(`Error analyzing workflows: ${error}`);
+    console.error(`❌ Error analyzing workflows: ${error}`);
     process.exit(1);
   }
 }

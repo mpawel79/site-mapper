@@ -187,9 +187,11 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
         duration: config.crawler.visualIndicatorDuration
       });
       
-      // Take screenshot with timestamp
-      const timestamp = Date.now();
-      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${timestamp}_page_${pageCount + 1}.png`);
+      // Create node ID first
+      const nodeId = `n_${pageCount}`;
+      
+      // Take screenshot with node ID
+      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${pageCount + 1}.png`, nodeId);
       
       // Add initial page visit step
       const pageName = await extractPageName(page);
@@ -221,8 +223,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       console.log(`🎯 Crawling Strategy: ${mcpAnalysis.crawlingStrategy}`);
       console.log(`⭐ Estimated Value: ${mcpAnalysis.estimatedValue}/10`);
       
-      // Create node with MCP analysis
-      const nodeId = `n_${pageCount}`;
+      // Create node with MCP analysis (nodeId already created above)
       const node = {
         id: nodeId,
         url: todoItem.url,
@@ -240,7 +241,7 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
       
       // Execute MCP-suggested actions and gather new TODO items
       console.log('🎯 Executing MCP-suggested actions...');
-      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir, crawlState, config);
+      const newTodoItems = await executeMCPActions(page, mcpAnalysis, todoItem.url, navigationTree, outDir, crawlState, config, nodeId);
       
       // Add new TODO items to queue
       for (const newItem of newTodoItems) {
@@ -335,8 +336,8 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
           // Take error screenshot if configured
           if (config.errorHandling.errorScreenshotOnFailure) {
             try {
-              const errorTimestamp = Date.now();
-              const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_page_error_${pageCount + 1}.png`);
+              const errorNodeId = `n_${pageCount}`;
+              const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `page_error_${pageCount + 1}.png`, errorNodeId);
               
               const pageName = await extractPageName(page);
               const areaName = await extractAreaName(page, 'page_error');
@@ -370,7 +371,8 @@ export async function runMCPSmartCrawl(seed: string, profile: any, outDir: strin
   }
   
   // Handle logout as final step
-  await handleLogoutAsFinalStep(page, navigationTree, outDir, crawlState);
+  const finalNodeId = `n_${pageCount}`;
+  await handleLogoutAsFinalStep(page, navigationTree, outDir, crawlState, finalNodeId);
   
   // Final save with MCP context
   const finalResult = {
@@ -690,14 +692,13 @@ function generateIntelligentFormData(placeholder: string, name: string, id: stri
 }
 
 // Helper function to handle logout as final step
-async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState) {
+async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState, nodeId?: string) {
   if (navigationTree.logoutButtons && navigationTree.logoutButtons.length > 0) {
     console.log(`\n🚪 Final step: Handling logout/sign out`);
     
     try {
       // Take screenshot before logout
-      const beforeLogoutTimestamp = Date.now();
-      const beforeLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${beforeLogoutTimestamp}_before_logout.png`);
+      const beforeLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), 'before_logout.png', nodeId);
       
       // Add step for logout attempt
       const pageName = await extractPageName(page);
@@ -732,8 +733,7 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
         await page.waitForTimeout(3000); // Wait for logout
         
         // Take screenshot after logout
-        const afterLogoutTimestamp = Date.now();
-        const afterLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterLogoutTimestamp}_after_logout.png`);
+        const afterLogoutScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), 'after_logout.png', nodeId);
         
         // Add step for successful logout
         const pageName = await extractPageName(page);
@@ -779,8 +779,7 @@ async function handleLogoutAsFinalStep(page: any, navigationTree: NavigationTree
       console.log(`❌ Error during logout: ${error}`);
       
       // Take screenshot for error case
-      const errorTimestamp = Date.now();
-      const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_logout_error.png`);
+      const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), 'logout_error.png', nodeId);
       
       // Add step for logout error
       const pageName = await extractPageName(page);
@@ -897,7 +896,7 @@ async function detectAllFormInputs(page: any): Promise<any[]> {
 }
 
 // Enhanced form filling function
-async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: string, outDir: string, crawlState: CrawlState, config: any): Promise<void> {
+async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: string, outDir: string, crawlState: CrawlState, config: any, nodeId?: string): Promise<void> {
   console.log(`📝 Filling ${formInputs.length} form inputs...`);
   
   for (const input of formInputs) {
@@ -925,8 +924,7 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
         console.log(`📝 Filled ${input.label} (${placeholder || name || id}) with: ${intelligentValue}`);
         
         // Take screenshot after each field is filled
-        const fieldTimestamp = Date.now();
-        const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${fieldTimestamp}_form_field_filled_${input.label.replace(/\s+/g, '_')}.png`);
+        const fieldScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_field_filled_${input.label.replace(/\s+/g, '_')}.png`, nodeId);
         
         const pageName = await extractPageName(page);
         const areaName = await extractAreaName(page, 'form_field_filled', [input]);
@@ -976,8 +974,7 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
           // Take screenshot of error state if configured
           let errorScreenshot = '';
           if (config.errorHandling.errorScreenshotOnFailure) {
-            const errorTimestamp = Date.now();
-            errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_field_error_${input.label.replace(/\s+/g, '_')}.png`);
+            errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_field_error_${input.label.replace(/\s+/g, '_')}.png`, nodeId);
           }
 
           const pageName = await extractPageName(page);
@@ -1006,7 +1003,7 @@ async function fillAllFormInputs(page: any, formInputs: any[], currentUrl: strin
 }
 
 // Helper function to execute MCP-suggested actions
-async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState, config: any): Promise<TodoItem[]> {
+async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string, navigationTree: NavigationTree, outDir: string, crawlState: CrawlState, config: any, nodeId?: string): Promise<TodoItem[]> {
   const newTodoItems: TodoItem[] = [];
   
   // Check for logout/sign out buttons first (these should be clicked last)
@@ -1027,8 +1024,7 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     console.log(`📝 Found ${allFormInputs.length} form inputs to fill`);
     
     // Take screenshot BEFORE form filling
-    const beforeFillTimestamp = Date.now();
-    const beforeFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${beforeFillTimestamp}_form_before_fill.png`);
+    const beforeFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), 'form_before_fill.png', nodeId);
     console.log(`📸 Screenshot taken BEFORE form filling: ${beforeFillScreenshot}`);
     
     // Add step for form filling start
@@ -1050,11 +1046,10 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
     );
     
     // Fill all detected form inputs
-    await fillAllFormInputs(page, allFormInputs, currentUrl, outDir, crawlState, config);
+    await fillAllFormInputs(page, allFormInputs, currentUrl, outDir, crawlState, config, nodeId);
     
     // Take screenshot AFTER all fields are filled
-    const afterFillTimestamp = Date.now();
-    const afterFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterFillTimestamp}_form_after_fill.png`);
+    const afterFillScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), 'form_after_fill.png', nodeId);
     console.log(`📸 Screenshot taken AFTER form filling: ${afterFillScreenshot}`);
     
     // Add step for form filling completion
@@ -1169,8 +1164,7 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
             await page.waitForTimeout(config.crawler.waitForLoad); // Wait for submission
             
             // Take screenshot AFTER form submission
-            const afterSubmitTimestamp = Date.now();
-            const afterSubmitScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${afterSubmitTimestamp}_form_after_submit_${i + 1}.png`);
+            const afterSubmitScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_after_submit_${i + 1}.png`, nodeId);
             console.log(`📸 Screenshot taken AFTER form ${i + 1} submission: ${afterSubmitScreenshot}`);
             
             // Add step for form submission
@@ -1246,8 +1240,7 @@ async function executeMCPActions(page: any, mcpAnalysis: any, currentUrl: string
               // Take error screenshot if configured
               if (config.errorHandling.errorScreenshotOnFailure) {
                 try {
-                  const errorTimestamp = Date.now();
-                  const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `${errorTimestamp}_form_submit_error_${i + 1}.png`);
+                  const errorScreenshot = await saveScreenshot(page, path.join(outDir, 'images'), `form_submit_error_${i + 1}.png`, nodeId);
                   
                   const pageName = await extractPageName(page);
                   const areaName = await extractAreaName(page, 'form_submit_error', allFormInputs);

@@ -2,6 +2,14 @@ import { chromium, firefox, webkit, Browser, Page, devices } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
+// Global counter for generating unique IDs
+let screenshotIdCounter = 0;
+
+// Function to generate unique screenshot ID
+export function generateScreenshotId(): string {
+  return `screenshot_${++screenshotIdCounter}`;
+}
+
 export async function launchBrowser(config?: any): Promise<Browser> {
   // Use config if provided, otherwise fall back to environment variables
   const headless = config?.browser?.headless ?? (process.env.HEADLESS === 'true' ? true : false);
@@ -103,14 +111,36 @@ export async function newPage(browser: Browser, config?: any): Promise<Page> {
   return page;
 }
 
-export async function saveScreenshot(page: Page, outDir: string, name: string) {
-  const p = path.join(outDir, name);
+export async function saveScreenshot(page: Page, outDir: string, name: string, nodeId?: string) {
+  const screenshotId = nodeId || generateScreenshotId();
+  const timestamp = Date.now();
+  
+  // Extract the base name and extension
+  const nameParts = name.split('.');
+  const extension = nameParts.pop() || 'png';
+  const baseName = nameParts.join('.');
+  
+  // Create new filename with pattern: {timestamp}_{nodeId}_{action_type}_{descriptive_name}.png
+  const newName = `${timestamp}_${screenshotId}_${baseName}.${extension}`;
+  const p = path.join(outDir, newName);
+  
   await page.screenshot({ path: p, fullPage: true });
   return p;
 }
 
-export async function saveElementScreenshot(page: Page, el: any, outDir: string, name: string) {
-  const p = path.join(outDir, name);
+export async function saveElementScreenshot(page: Page, el: any, outDir: string, name: string, nodeId?: string) {
+  const screenshotId = nodeId || generateScreenshotId();
+  const timestamp = Date.now();
+  
+  // Extract the base name and extension
+  const nameParts = name.split('.');
+  const extension = nameParts.pop() || 'png';
+  const baseName = nameParts.join('.');
+  
+  // Create new filename with pattern: {timestamp}_{nodeId}_{action_type}_{descriptive_name}.png
+  const newName = `${timestamp}_${screenshotId}_${baseName}.${extension}`;
+  const p = path.join(outDir, newName);
+  
   try {
     await el.screenshot({ path: p });
     return p;

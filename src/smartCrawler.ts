@@ -102,16 +102,18 @@ export async function runSmartCrawl(seed: string, profile: any, outDir: string) 
       // Wait for page to fully load
       await page.waitForTimeout(2000);
       
-      // Take screenshot
-      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${pageCount + 1}.png`);
+      // Create node ID first
+      const nodeId = `n_${pageCount}`;
+      
+      // Take screenshot with node ID
+      const screenshot = await saveScreenshot(page, path.join(outDir, 'images'), `page_${pageCount + 1}.png`, nodeId);
       
       // AI Analysis
       console.log('🤖 Analyzing page with AI...');
       const analysis = await aiAgent.analyzePage(page);
       console.log(`📊 Analysis: ${analysis.pageType} page with ${analysis.interactiveElements.length} interactive elements`);
       
-      // Create node
-      const nodeId = `n_${pageCount}`;
+      // Create node (nodeId already created above)
       const node = {
         id: nodeId,
         url: todoItem.url,
