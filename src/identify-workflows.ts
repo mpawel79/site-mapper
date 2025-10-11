@@ -931,6 +931,8 @@ class WorkflowIdentifier {
             transform: translate(-50%, -50%);
             width: 90vw;
             height: 90vh;
+            max-width: 1200px;
+            max-height: 800px;
             background: white;
             border-radius: 8px;
             overflow: hidden;
@@ -940,7 +942,7 @@ class WorkflowIdentifier {
         }
         .modal-image {
             width: 100%;
-            height: 100%;
+            height: auto;
             display: block;
             cursor: grab;
             object-fit: contain;
@@ -950,13 +952,13 @@ class WorkflowIdentifier {
         }
         .modal-image-container {
             flex: 1;
-            overflow: hidden;
+            overflow-y: auto;
             border-radius: 5px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
+            padding: 20px;
             background: #f8f9fa;
-            position: relative;
         }
         .modal-caption {
             padding: 15px;
@@ -1377,51 +1379,18 @@ class WorkflowIdentifier {
             const modalImage = document.getElementById('modalImage');
             const imageContainer = modalImage.parentElement;
             
-            // Enable scrolling if image is larger than container
-            function enableScrollingIfNeeded() {
-                const containerHeight = imageContainer.clientHeight;
-                const imageHeight = modalImage.naturalHeight;
-                const imageWidth = modalImage.naturalWidth;
-                const containerWidth = imageContainer.clientWidth;
-                
-                // Calculate if image needs scrolling
-                const needsVerticalScroll = imageHeight > containerHeight;
-                const needsHorizontalScroll = imageWidth > containerWidth;
-                
-                if (needsVerticalScroll || needsHorizontalScroll) {
-                    imageContainer.style.overflow = 'auto';
-                    modalImage.style.objectFit = 'none';
-                    modalImage.style.width = 'auto';
-                    modalImage.style.height = 'auto';
-                    modalImage.style.maxWidth = '100%';
-                    modalImage.style.maxHeight = '100%';
-                } else {
-                    imageContainer.style.overflow = 'hidden';
-                    modalImage.style.objectFit = 'contain';
-                    modalImage.style.width = '100%';
-                    modalImage.style.height = '100%';
-                }
-            }
-            
-            // Check scrolling needs when image loads
-            modalImage.addEventListener('load', enableScrollingIfNeeded);
-            
             // Mouse wheel scrolling
             imageContainer.addEventListener('wheel', function(e) {
-                if (imageContainer.style.overflow === 'auto') {
-                    e.preventDefault();
-                    imageContainer.scrollTop += e.deltaY;
-                }
+                e.preventDefault();
+                imageContainer.scrollTop += e.deltaY;
             });
             
             // Drag scrolling
             imageContainer.addEventListener('mousedown', function(e) {
-                if (imageContainer.style.overflow === 'auto') {
-                    isDragging = true;
-                    startY = e.pageY - imageContainer.offsetTop;
-                    scrollTop = imageContainer.scrollTop;
-                    imageContainer.style.cursor = 'grabbing';
-                }
+                isDragging = true;
+                startY = e.pageY - imageContainer.offsetTop;
+                scrollTop = imageContainer.scrollTop;
+                imageContainer.style.cursor = 'grabbing';
             });
             
             imageContainer.addEventListener('mouseleave', function() {
@@ -1435,7 +1404,7 @@ class WorkflowIdentifier {
             });
             
             imageContainer.addEventListener('mousemove', function(e) {
-                if (!isDragging || imageContainer.style.overflow !== 'auto') return;
+                if (!isDragging) return;
                 e.preventDefault();
                 const y = e.pageY - imageContainer.offsetTop;
                 const walk = (y - startY) * 2;
@@ -1447,19 +1416,15 @@ class WorkflowIdentifier {
             let touchScrollTop = 0;
             
             imageContainer.addEventListener('touchstart', function(e) {
-                if (imageContainer.style.overflow === 'auto') {
-                    touchStartY = e.touches[0].pageY;
-                    touchScrollTop = imageContainer.scrollTop;
-                }
+                touchStartY = e.touches[0].pageY;
+                touchScrollTop = imageContainer.scrollTop;
             });
             
             imageContainer.addEventListener('touchmove', function(e) {
-                if (imageContainer.style.overflow === 'auto') {
-                    e.preventDefault();
-                    const touchY = e.touches[0].pageY;
-                    const touchWalk = (touchY - touchStartY) * 1.5;
-                    imageContainer.scrollTop = touchScrollTop - touchWalk;
-                }
+                e.preventDefault();
+                const touchY = e.touches[0].pageY;
+                const touchWalk = (touchY - touchStartY) * 1.5;
+                imageContainer.scrollTop = touchScrollTop - touchWalk;
             });
         }
         
