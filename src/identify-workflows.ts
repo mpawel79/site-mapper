@@ -856,6 +856,105 @@ class WorkflowIdentifier {
         .badge-auth { background: #fff3e0; color: #f57c00; }
         .badge-data { background: #fce4ec; color: #c2185b; }
         .badge-unknown { background: #f5f5f5; color: #757575; }
+        .screenshots-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-width: 200px;
+        }
+        .screenshot-thumbnail {
+            position: relative;
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.2s;
+        }
+        .screenshot-thumbnail:hover {
+            border-color: #667eea;
+        }
+        .screenshot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .screenshot-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 0.7em;
+            padding: 2px 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .no-screenshots {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        .more-screenshots {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .modal-caption {
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-weight: 600;
+            color: #333;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .close:hover {
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -902,6 +1001,7 @@ class WorkflowIdentifier {
                     <th>Outputs</th>
                     <th>Comment</th>
                     <th>Complexity</th>
+                    <th>Flow Screenshots</th>
                 </tr>
             </thead>
             <tbody>`;
@@ -916,6 +1016,7 @@ class WorkflowIdentifier {
         workflow.comment.substring(0, 37) + '...' : workflow.comment;
       
       const journeyClass = this.getJourneyClass(workflow.userJourneyName);
+      const screenshots = this.getWorkflowScreenshots(workflow);
       
       content += `
                 <tr>
@@ -927,6 +1028,7 @@ class WorkflowIdentifier {
                     <td>${outputs}</td>
                     <td>${comment}</td>
                     <td>${workflow.complexity}</td>
+                    <td>${screenshots}</td>
                 </tr>`;
     }
 
@@ -993,6 +1095,45 @@ class WorkflowIdentifier {
         <p>Generated on ${new Date().toISOString()}</p>
         <p>Workflow Analysis Tool - Automated User Journey Detection</p>
     </div>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshotModal" class="modal" onclick="closeScreenshotModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closeScreenshotModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+            <div id="modalCaption" class="modal-caption"></div>
+        </div>
+    </div>
+
+    <script>
+        function openScreenshotModal(imageSrc, caption) {
+            const modal = document.getElementById('screenshotModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            
+            modalImage.src = imageSrc;
+            modalCaption.textContent = caption;
+            modal.style.display = 'block';
+            
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeScreenshotModal() {
+            const modal = document.getElementById('screenshotModal');
+            modal.style.display = 'none';
+            
+            // Restore body scroll
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when pressing Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeScreenshotModal();
+            }
+        });
+    </script>
 </body>
 </html>`;
 
@@ -1010,6 +1151,58 @@ class WorkflowIdentifier {
       'Unknown': 'unknown'
     };
     return journeyMap[journeyName] || 'unknown';
+  }
+
+  private getWorkflowScreenshots(workflow: Workflow): string {
+    const sessionDir = this.mapData.metadata.sessionInfo.sessionDir;
+    const imagesDir = path.join(path.dirname(this.mapFilePath), 'images');
+    
+    // Get all steps for this workflow
+    const workflowSteps = this.mapData.crawlState.steps.filter(step => 
+      workflow.stepsIds.includes(step.id)
+    );
+    
+    let screenshotsHtml = '<div class="screenshots-container">';
+    let screenshotCount = 0;
+    const maxScreenshots = 3; // Limit to 3 screenshots per workflow for table display
+    
+    for (const step of workflowSteps) {
+      if (screenshotCount >= maxScreenshots) break;
+      
+      if (step.screenshot) {
+        // Extract just the filename from the full path
+        const screenshotPath = step.screenshot;
+        const filename = path.basename(screenshotPath);
+        
+        // Check if the image file exists in the images directory
+        const imagePath = path.join(imagesDir, filename);
+        if (fs.existsSync(imagePath)) {
+          const relativePath = `images/${filename}`;
+          const altText = `${step.id}: ${step.action}`;
+          
+          screenshotsHtml += `
+            <div class="screenshot-thumbnail">
+              <img src="${relativePath}" 
+                   alt="${altText}" 
+                   title="${altText}"
+                   class="screenshot-img"
+                   loading="lazy"
+                   onclick="openScreenshotModal('${relativePath}', '${altText}')">
+              <div class="screenshot-caption">${step.id}</div>
+            </div>`;
+          screenshotCount++;
+        }
+      }
+    }
+    
+    if (screenshotCount === 0) {
+      screenshotsHtml += '<span class="no-screenshots">No screenshots available</span>';
+    } else if (workflowSteps.length > maxScreenshots) {
+      screenshotsHtml += `<div class="more-screenshots">+${workflowSteps.length - maxScreenshots} more</div>`;
+    }
+    
+    screenshotsHtml += '</div>';
+    return screenshotsHtml;
   }
 
   public getWorkflows(): Workflow[] {
