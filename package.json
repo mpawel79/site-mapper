@@ -14,6 +14,7 @@
     "start:mobile-android": "node --loader ts-node/esm src/cli.ts mobile-android",
     "start:tablet-android": "node --loader ts-node/esm src/cli.ts tablet-android",
     "build": "tsc",
+    "identify-workflows": "node --loader ts-node/esm src/identify-workflows.ts",
     "prepare-playwright": "npx playwright install"
   },
   "dependencies": {
