@@ -987,6 +987,121 @@ class WorkflowIdentifier {
         .close:hover {
             color: #ccc;
         }
+        .all-screenshots-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .all-screenshots-section h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .workflow-screenshots-grid {
+            display: grid;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .workflow-screenshot-group {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .workflow-screenshot-group h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .workflow-description {
+            color: #666;
+            margin: 0 0 15px 0;
+            font-style: italic;
+        }
+        .workflow-screenshots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .workflow-screenshot-item {
+            position: relative;
+            width: 120px;
+            height: 80px;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .workflow-screenshot-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .workflow-screenshot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .workflow-screenshot-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 8px;
+            font-size: 0.8em;
+        }
+        .step-id {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .step-action {
+            font-size: 0.75em;
+            opacity: 0.9;
+        }
+        .modal-navigation {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .modal-navigation:hover {
+            background: rgba(0,0,0,0.9);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .modal-nav-prev {
+            left: 20px;
+        }
+        .modal-nav-next {
+            right: 20px;
+        }
+        .modal-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -1123,6 +1238,57 @@ class WorkflowIdentifier {
     content += `
     </div>
 
+    <div class="all-screenshots-section">
+        <h2>📸 All Workflow Screenshots</h2>
+        <p>Click on any workflow below to view all its screenshots in detail:</p>
+        
+        <div class="workflow-screenshots-grid">`;
+
+    // Add all workflow screenshots
+    for (let i = 0; i < this.workflows.length; i++) {
+      const workflow = this.workflows[i];
+      const workflowSteps = this.mapData.crawlState.steps.filter(step => 
+        workflow.stepsIds.includes(step.id)
+      );
+      
+      content += `
+        <div class="workflow-screenshot-group" data-workflow-index="${i}">
+            <h3>${workflow.useCaseName} <span class="badge badge-${this.getJourneyClass(workflow.userJourneyName)}">${workflow.userJourneyName}</span></h3>
+            <p class="workflow-description">${workflow.comment}</p>
+            <div class="workflow-screenshots">`;
+      
+      for (const step of workflowSteps) {
+        if (step.screenshot) {
+          const screenshotPath = step.screenshot;
+          const filename = path.basename(screenshotPath);
+          const imagesDir = path.join(path.dirname(this.mapFilePath), 'images');
+          const imagePath = path.join(imagesDir, filename);
+          
+          if (fs.existsSync(imagePath)) {
+            const relativePath = `images/${filename}`;
+            const altText = `${step.id}: ${step.action}`;
+            
+            content += `
+              <div class="workflow-screenshot-item" onclick="openScreenshotOverlay(${i}, '${relativePath}', '${altText}')">
+                <img src="${relativePath}" alt="${altText}" title="${altText}" class="workflow-screenshot-img">
+                <div class="workflow-screenshot-info">
+                  <div class="step-id">${step.id}</div>
+                  <div class="step-action">${step.action}</div>
+                </div>
+              </div>`;
+          }
+        }
+      }
+      
+      content += `
+            </div>
+        </div>`;
+    }
+
+    content += `
+        </div>
+    </div>
+
     <div class="footer">
         <p>Generated on ${new Date().toISOString()}</p>
         <p>Workflow Analysis Tool - Automated User Journey Detection</p>
@@ -1132,37 +1298,99 @@ class WorkflowIdentifier {
     <div id="screenshotModal" class="modal" onclick="closeScreenshotModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="close" onclick="closeScreenshotModal()">&times;</span>
+            <div id="modalCounter" class="modal-counter"></div>
+            <button id="modalNavPrev" class="modal-navigation modal-nav-prev" onclick="navigateScreenshot(-1)">&lt;</button>
+            <button id="modalNavNext" class="modal-navigation modal-nav-next" onclick="navigateScreenshot(1)">&gt;</button>
             <img id="modalImage" class="modal-image" src="" alt="">
             <div id="modalCaption" class="modal-caption"></div>
         </div>
     </div>
 
     <script>
-        function openScreenshotModal(imageSrc, caption) {
+        let currentWorkflowIndex = -1;
+        let currentScreenshotIndex = 0;
+        let workflowScreenshots = [];
+        
+        function openScreenshotOverlay(workflowIndex, imageSrc, caption) {
+            currentWorkflowIndex = workflowIndex;
+            
+            // Get all screenshots for this workflow
+            const workflowGroup = document.querySelector(\`[data-workflow-index="\${workflowIndex}"]\`);
+            const screenshotItems = workflowGroup.querySelectorAll('.workflow-screenshot-item');
+            workflowScreenshots = Array.from(screenshotItems).map(item => ({
+                src: item.querySelector('img').src,
+                caption: item.querySelector('img').alt
+            }));
+            
+            // Find current screenshot index
+            currentScreenshotIndex = workflowScreenshots.findIndex(s => s.src === imageSrc);
+            if (currentScreenshotIndex === -1) currentScreenshotIndex = 0;
+            
+            showScreenshot(currentScreenshotIndex);
+            updateNavigationButtons();
+            
             const modal = document.getElementById('screenshotModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function showScreenshot(index) {
+            if (workflowScreenshots.length === 0) return;
+            
             const modalImage = document.getElementById('modalImage');
             const modalCaption = document.getElementById('modalCaption');
+            const modalCounter = document.getElementById('modalCounter');
             
-            modalImage.src = imageSrc;
-            modalCaption.textContent = caption;
-            modal.style.display = 'block';
+            const screenshot = workflowScreenshots[index];
+            modalImage.src = screenshot.src;
+            modalCaption.textContent = screenshot.caption;
+            modalCounter.textContent = \`\${index + 1} / \${workflowScreenshots.length}\`;
+        }
+        
+        function navigateScreenshot(direction) {
+            if (workflowScreenshots.length === 0) return;
             
-            // Prevent body scroll when modal is open
-            document.body.style.overflow = 'hidden';
+            currentScreenshotIndex += direction;
+            
+            // Wrap around
+            if (currentScreenshotIndex < 0) {
+                currentScreenshotIndex = workflowScreenshots.length - 1;
+            } else if (currentScreenshotIndex >= workflowScreenshots.length) {
+                currentScreenshotIndex = 0;
+            }
+            
+            showScreenshot(currentScreenshotIndex);
+        }
+        
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('modalNavPrev');
+            const nextBtn = document.getElementById('modalNavNext');
+            
+            if (workflowScreenshots.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
         }
         
         function closeScreenshotModal() {
             const modal = document.getElementById('screenshotModal');
             modal.style.display = 'none';
-            
-            // Restore body scroll
             document.body.style.overflow = 'auto';
         }
         
-        // Close modal when pressing Escape key
+        // Keyboard navigation
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeScreenshotModal();
+            if (document.getElementById('screenshotModal').style.display === 'block') {
+                if (event.key === 'Escape') {
+                    closeScreenshotModal();
+                } else if (event.key === 'ArrowLeft') {
+                    navigateScreenshot(-1);
+                } else if (event.key === 'ArrowRight') {
+                    navigateScreenshot(1);
+                }
             }
         });
     </script>
