@@ -858,28 +858,60 @@ class WorkflowIdentifier {
         .badge-unknown { background: #f5f5f5; color: #757575; }
         .screenshots-container {
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            max-width: 200px;
+            flex-direction: row;
+            gap: 8px;
+            max-width: 300px;
+            align-items: center;
         }
         .screenshot-thumbnail {
             position: relative;
-            width: 60px;
-            height: 40px;
-            border-radius: 4px;
+            width: 80px;
+            height: 50px;
+            border-radius: 6px;
             overflow: hidden;
             cursor: pointer;
             border: 2px solid #e9ecef;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
         }
         .screenshot-thumbnail:hover {
             border-color: #667eea;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .screenshot-thumbnail:hover::after {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 200px;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .screenshot-thumbnail:hover .screenshot-img {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            z-index: 1001;
+            pointer-events: none;
         }
         .screenshot-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            transition: all 0.3s ease;
         }
         .screenshot-caption {
             position: absolute;
@@ -1186,8 +1218,7 @@ class WorkflowIdentifier {
                    alt="${altText}" 
                    title="${altText}"
                    class="screenshot-img"
-                   loading="lazy"
-                   onclick="openScreenshotModal('${relativePath}', '${altText}')">
+                   loading="lazy">
               <div class="screenshot-caption">${step.id}</div>
             </div>`;
           screenshotCount++;
