@@ -931,8 +931,6 @@ class WorkflowIdentifier {
             transform: translate(-50%, -50%);
             width: 90vw;
             height: 90vh;
-            max-width: 1200px;
-            max-height: 800px;
             background: white;
             border-radius: 8px;
             overflow: hidden;
@@ -941,7 +939,9 @@ class WorkflowIdentifier {
             flex-direction: column;
         }
         .modal-image {
-            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
             height: auto;
             display: block;
             cursor: grab;
@@ -952,12 +952,12 @@ class WorkflowIdentifier {
         }
         .modal-image-container {
             flex: 1;
-            overflow-y: auto;
+            overflow: auto;
             border-radius: 5px;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 10px;
             background: #f8f9fa;
         }
         .modal-caption {
